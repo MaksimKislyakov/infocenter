@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, text
 
 from app.api.routes.auth import router as auth_router
+from app.api.routes.users import router as users_router
 from app.core.config import get_settings
 from app.db.session import Base, engine, SessionLocal
 from app.services.auth_service import get_password_hash
@@ -71,6 +72,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(users_router)
 
 @app.get('/')
 def root():

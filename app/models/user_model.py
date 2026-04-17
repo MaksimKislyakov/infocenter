@@ -18,6 +18,7 @@ class User(Base):
     job_title = Column(String, nullable=True)
     email = Column(String(length=255), unique=True, nullable=True)
     password_hash = Column(String(length=255), nullable=False)
+    refresh_token = Column(String(length=1024), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
 
 

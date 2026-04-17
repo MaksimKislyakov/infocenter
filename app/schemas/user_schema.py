@@ -1,7 +1,7 @@
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 from app.core.enums import Role
 
@@ -10,7 +10,8 @@ class UserBase(BaseModel):
     login: str
     full_name: str
     role: Role
-    email: EmailStr
+    job_title: Optional[str] = None
+    email: Optional[EmailStr] = None
     is_active: bool = True
 
 
@@ -22,6 +23,7 @@ class UserUpdate(BaseModel):
     login: Optional[str] = None
     full_name: Optional[str] = None
     role: Optional[Role] = None
+    job_title: Optional[str] = None
     email: Optional[EmailStr] = None
     password: Optional[str] = None
     is_active: Optional[bool] = None
@@ -30,5 +32,4 @@ class UserUpdate(BaseModel):
 class UserRead(UserBase):
     id: UUID
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)

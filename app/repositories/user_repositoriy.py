@@ -1,4 +1,5 @@
 from typing import Optional
+from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.models.user_model import User
@@ -15,7 +16,12 @@ class UserRepository:
     def get_by_email(self, email: str) -> User | None:
         return self.db.query(User).filter(User.email == email).first()
 
-    def get_by_id(self, user_id: str) -> User | None:
+    def get_by_id(self, user_id: UUID | str) -> User | None:
+        if isinstance(user_id, str):
+            try:
+                user_id = UUID(user_id)
+            except ValueError:
+                return None
         return self.db.query(User).filter(User.id == user_id).first()
 
     def list(self) -> list[User]:
@@ -26,6 +32,7 @@ class UserRepository:
             login=user_create.login,
             full_name=user_create.full_name,
             role=user_create.role,
+            job_title=user_create.job_title,
             email=user_create.email,
             password_hash=password_hash,
             is_active=user_create.is_active,
@@ -42,6 +49,8 @@ class UserRepository:
             user.full_name = user_update.full_name
         if user_update.role is not None:
             user.role = user_update.role
+        if user_update.job_title is not None:
+            user.job_title = user_update.job_title
         if user_update.email is not None:
             user.email = user_update.email
         if user_update.is_active is not None:
