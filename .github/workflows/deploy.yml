@@ -1,0 +1,28 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy to server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: 202.181.148.124
+        username: ${{ secrets.SERVER_USER }}
+        password: ${{ secrets.SERVER_PASSWORD }}
+        script: |
+          cd /root/mobile-obhodchik-TO-obrabotchik
+          git pull
+          
+          docker compose down
+          docker compose up --build -d
+          
+          echo "Deploy completed successfully!"
