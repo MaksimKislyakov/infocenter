@@ -8,7 +8,7 @@ from app.core.enums import Role
 from app.db.session import get_db
 from app.repositories.user_repositoriy import UserRepository
 from app.schemas.auth_schema import TokenData
-from app.services.auth_service import decode_access_token
+from app.core.security import decode_access_token
 
 settings = get_settings()
 bearer_scheme = HTTPBearer(auto_error=False)

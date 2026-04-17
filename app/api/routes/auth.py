@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db
 from app.repositories.user_repositoriy import UserRepository
 from app.schemas.auth_schema import LoginRequest, RefreshTokenRequest, Token
-from app.services.auth_service import authenticate_user, create_access_token, create_refresh_token, decode_refresh_token
+from app.services.auth_service import authenticate_user, create_access_token, create_refresh_token
+from app.core.security import decode_refresh_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -39,7 +40,7 @@ def refresh_token(request: RefreshTokenRequest, db: Session = Depends(get_db)):
 
     repo = UserRepository(db)
     user = repo.get_by_login(login)
-    if user is None or user.refresh_token != request.refresh_token:
+    if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid refresh token",
