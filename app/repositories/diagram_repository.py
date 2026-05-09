@@ -9,7 +9,6 @@ class DiagramRepository:
 
     def create(self, data: DatasetCreate) -> Diagram:
         diagram = Diagram(
-            diagramm_id=data.diagramm_id,
             columns=[c.model_dump() for c in data.columns],
             rows=data.rows,
         )
@@ -19,14 +18,14 @@ class DiagramRepository:
         return diagram
 
     def get_by_id(self, diagram_id: str) -> Diagram | None:
-        return self.db.query(Diagram).filter(Diagram.diagramm_id == diagram_id).first()
+        return self.db.query(Diagram).filter(Diagram.id == diagram_id).first()
 
     def get_all(self, skip: int = 0, limit: int = 100) -> list[Diagram]:
         return self.db.query(Diagram).offset(skip).limit(limit).all()
 
     def update(self, diagram: Diagram, data: DatasetUpdate) -> Diagram:
-        if data.diagramm_id:
-            diagram.diagramm_id = data.diagramm_id
+        if data.id:
+            diagram.id = data.id
         diagram.columns = [c.model_dump() for c in data.columns]
         diagram.rows = data.rows
         self.db.commit()

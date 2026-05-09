@@ -14,16 +14,15 @@ class DatasetBase(BaseModel):
 
 
 class DatasetCreate(DatasetBase):
-    diagramm_id: str
+    id: UUID
 
 
 class DatasetUpdate(DatasetBase):
-    diagramm_id: str | None = None
+    id: UUID | None = None
 
 
 class DatasetResponse(DatasetBase):
     id: UUID
-    diagramm_id: str
 
     class Config:
         from_attributes = True
