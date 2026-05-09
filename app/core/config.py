@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
     REFRESH_TOKEN_EXPIRE_DAYS: int = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
 
-    DB_URL: str = os.getenv("DB_URL")
+    # DB_URL: str = os.getenv("DB_URL")
     DB_USER: str = os.getenv("DB_USER")
     DB_PASSWORD: str =os.getenv("DB_PASSWORD")
     DB_HOST: str = os.getenv("DB_HOST")
