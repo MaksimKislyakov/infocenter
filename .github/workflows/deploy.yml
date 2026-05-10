@@ -15,14 +15,10 @@ jobs:
     - name: Deploy to server
       uses: appleboy/ssh-action@v1.0.3
       with:
-        host: 202.181.148.124
+        host: 185.56.162.117
         username: ${{ secrets.SERVER_USER }}
-        password: ${{ secrets.SERVER_PASSWORD }}
+        password: ${{ secrets.SERVER_PASSWORD_2 }}
         script: |
-          cd /root/infocenter
-          git pull
-          
-          docker compose down
-          docker compose up --build -d
-          
+          cd /home/infocenter
+
           echo "Deploy completed successfully!"

@@ -10,3 +10,7 @@ venv/
 dist/
 build/
 Makefile
+
+ssl/
+
+alembic/versions/
