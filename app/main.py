@@ -5,12 +5,14 @@ from sqlalchemy import create_engine, text
 from app.api.routes.auth import router as auth_router
 from app.api.routes.users import router as users_router
 from app.api.routes.diagrams import router as diagrams_router
+from app.api.routes.permissions import router as permissions_router
 
 from app.core.config import get_settings
 from app.db.session import Base, engine, SessionLocal
 from app.services.auth_service import get_password_hash
 from app.services.minio_service import MinioService
 from app.models.user_model import User
+
 
 settings = get_settings()
 admin_engine = create_engine(f"postgresql+psycopg://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/postgres", future=True)
@@ -76,6 +78,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(diagrams_router)
+app.include_router(permissions_router)
 
 @app.get('/')
 def root():

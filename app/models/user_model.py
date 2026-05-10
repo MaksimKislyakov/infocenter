@@ -3,6 +3,7 @@ import uuid
 from sqlalchemy import Boolean, Column, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Enum
+from sqlalchemy.orm import relationship
 
 from app.core.enums import Role
 from app.db.session import Base
@@ -20,6 +21,8 @@ class User(Base):
     password_hash = Column(String(length=255), nullable=False)
     refresh_token = Column(String(length=1024), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
+    
+    permissions = relationship("UserUnitPermission", back_populates="user", cascade="all, delete-orphan")
 
 
 
