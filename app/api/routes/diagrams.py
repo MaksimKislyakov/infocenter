@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db, get_current_active_user
 from app.schemas.diagram_schema import DatasetCreate, DatasetUpdate, DatasetResponse
 from app.services.diagram_service import DiagramService
+from app.services.permission_service import PermissionService
+from app.core.enums import Action
 
 router = APIRouter(prefix="/diagrams", tags=["diagrams"])
 
@@ -14,6 +16,10 @@ def create_diagram(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_active_user),
 ):
+    perm_service = PermissionService(db)
+    if not perm_service.has_access(current_user.id, data.unit_id, data.block, Action.MANAGE):
+        raise HTTPException(status_code=403, detail="Нет прав на создание в этом блоке/подразделении")
+    
     service = DiagramService(db)
     return service.create_diagram(data)
 

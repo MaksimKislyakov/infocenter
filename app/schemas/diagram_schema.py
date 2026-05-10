@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field
 from typing import Literal
 from uuid import UUID
 
+from app.core.enums import Block
+
 
 class ColumnSchema(BaseModel):
     name: str
@@ -9,6 +11,8 @@ class ColumnSchema(BaseModel):
 
 
 class DatasetBase(BaseModel):
+    block: Block
+    unit_id: UUID
     columns: list[ColumnSchema]
     rows: list[dict]
 

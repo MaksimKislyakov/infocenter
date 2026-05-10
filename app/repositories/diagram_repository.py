@@ -9,6 +9,8 @@ class DiagramRepository:
 
     def create(self, data: DatasetCreate) -> Diagram:
         diagram = Diagram(
+            block=data.block,
+            unit_id=data.unit_id,
             columns=[c.model_dump() for c in data.columns],
             rows=data.rows,
         )
@@ -24,6 +26,8 @@ class DiagramRepository:
         return self.db.query(Diagram).offset(skip).limit(limit).all()
 
     def update(self, diagram: Diagram, data: DatasetUpdate) -> Diagram:
+        if data.block: diagram.block = data.block
+        if data.unit_id: diagram.unit_id = data.unit_id
         if data.id:
             diagram.id = data.id
         diagram.columns = [c.model_dump() for c in data.columns]

@@ -6,6 +6,7 @@ from app.api.routes.auth import router as auth_router
 from app.api.routes.users import router as users_router
 from app.api.routes.diagrams import router as diagrams_router
 from app.api.routes.permissions import router as permissions_router
+from app.api.routes.units import router as units_router
 
 from app.core.config import get_settings
 from app.db.session import Base, engine, SessionLocal
@@ -61,7 +62,28 @@ def initialize_minio():
     except Exception as e:
         print(f"MinIO initialization failed: {e}")
 
+def create_default_units():
+    """Создаёт 3 базовых юнита, если их нет"""
+    db = SessionLocal()
+    try:
+        from app.core.enums import OrgLevel
+        from app.models.unit_model import Unit
+        
+        defaults = [
+            ("Предприятие 999", OrgLevel.ENTERPRISE, None),
+            ("Цех 999", OrgLevel.SHOP, None),  
+            ("Участок 999", OrgLevel.AREA, None),
+        ]
+        for name, level, parent in defaults:
+            exists = db.query(Unit).filter(Unit.name == name).first()
+            if not exists:
+                db.add(Unit(name=name, level_type=level, parent_id=parent))
+        db.commit()
+        print("✅ Default units created")
+    finally:
+        db.close()
 
+create_default_units()
 create_default_admin()
 initialize_minio()
 
@@ -79,6 +101,7 @@ app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(diagrams_router)
 app.include_router(permissions_router)
+app.include_router(units_router)
 
 @app.get('/')
 def root():

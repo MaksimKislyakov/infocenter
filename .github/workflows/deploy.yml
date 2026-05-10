@@ -20,5 +20,5 @@ jobs:
         password: ${{ secrets.SERVER_PASSWORD_2 }}
         script: |
           cd /home/infocenter
-
+          
           echo "Deploy completed successfully!"

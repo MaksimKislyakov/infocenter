@@ -9,13 +9,20 @@ class PermissionGrantSchema(BaseModel):
     block: Block
     action: Action
 
+class UnitBriefSchema(BaseModel):
+    id: UUID
+    name: str
+    level_type: OrgLevel 
+    class Config:
+        from_attributes = True
 
 class PermissionResponseSchema(BaseModel):
     """Ответ: право пользователя"""
     id: UUID
-    unit_id: UUID
-    unit_name: str
-    unit_level: OrgLevel
+    unit: UnitBriefSchema
+    # unit_id: UUID
+    # unit_name: str
+    # unit_level: OrgLevel
     block: Block
     action: Action
 
