@@ -1,5 +1,6 @@
 import uuid
-from sqlalchemy import Column, JSON, ForeignKey, Enum as SQLEnum
+from datetime import datetime
+from sqlalchemy import Column, JSON, ForeignKey, Enum as SQLEnum, DateTime
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
@@ -17,4 +18,9 @@ class Diagram(Base):
 
     block = Column(SQLEnum(Block), nullable=False)
     unit_id = Column(PG_UUID(as_uuid=True), ForeignKey("units.id"), nullable=False)
+    created_by = Column(PG_UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
     unit = relationship("Unit", backref="diagrams")
+    creator = relationship("User", backref="created_diagrams")

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, get_current_active_user
-from app.schemas.diagram_schema import DatasetCreate, DatasetUpdate, DatasetResponse
+from app.schemas.diagram_schema import DatasetCreate, DatasetUpdate, DatasetResponse, DiagramAuditResponse
 from app.services.diagram_service import DiagramService
 from app.services.permission_service import PermissionService
 from app.core.enums import Action
@@ -21,7 +21,7 @@ def create_diagram(
         raise HTTPException(status_code=403, detail="Нет прав на создание в этом блоке/подразделении")
     
     service = DiagramService(db)
-    return service.create_diagram(data)
+    return service.create_diagram(data, current_user.id)
 
 
 @router.get("/", response_model=list[DatasetResponse])
@@ -56,7 +56,7 @@ def update_diagram(
     current_user=Depends(get_current_active_user),
 ):
     service = DiagramService(db)
-    diagram = service.update_diagram(diagram_id, data)
+    diagram = service.update_diagram(diagram_id, data, current_user.id)
     if not diagram:
         raise HTTPException(status_code=404, detail="Diagram not found")
     return diagram
@@ -69,5 +69,21 @@ def delete_diagram(
     current_user=Depends(get_current_active_user),
 ):
     service = DiagramService(db)
-    if not service.delete_diagram(diagram_id):
+    if not service.delete_diagram(diagram_id, current_user.id):
         raise HTTPException(status_code=404, detail="Diagram not found")
+
+
+@router.get("/{diagram_id}/audit", response_model=list[DiagramAuditResponse])
+def get_diagram_audit_logs(
+    diagram_id: str,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_active_user),
+):
+    """Get audit logs for a specific diagram."""
+    service = DiagramService(db)
+    diagram = service.get_diagram(diagram_id)
+    if not diagram:
+        raise HTTPException(status_code=404, detail="Diagram not found")
+    return service.get_diagram_audit_logs(diagram_id, skip, limit)
