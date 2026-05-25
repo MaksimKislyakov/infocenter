@@ -7,6 +7,8 @@ from app.api.routes.users import router as users_router
 from app.api.routes.diagrams import router as diagrams_router
 from app.api.routes.permissions import router as permissions_router
 from app.api.routes.units import router as units_router
+from app.api.routes.charts import router as charts_router
+from app.api.routes.datasets import router as datasets_router
 
 from app.core.config import get_settings
 from app.db.session import Base, engine, SessionLocal
@@ -100,6 +102,8 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(diagrams_router)
+app.include_router(charts_router)
+app.include_router(datasets_router)
 app.include_router(permissions_router)
 app.include_router(units_router)
 

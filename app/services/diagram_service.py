@@ -1,3 +1,7 @@
+from datetime import date, datetime
+from decimal import Decimal
+import math
+
 from sqlalchemy.orm import Session
 from uuid import UUID
 from app.repositories.diagram_repository import DiagramRepository
@@ -18,9 +22,36 @@ class DiagramService:
             return None
         return DatasetResponse.model_validate(diagram)
 
-    def list_diagrams(self, skip: int = 0, limit: int = 100) -> list[DatasetResponse]:
-        diagrams = self.repository.get_all(skip, limit)
+    def list_diagrams(self, skip: int = 0, limit: int = 100, block=None, unit_id=None) -> list[DatasetResponse]:
+        diagrams = self.repository.get_all(skip, limit, block, unit_id)
         return [DatasetResponse.model_validate(d) for d in diagrams]
+
+    def _sanitize_value(self, value):
+        if isinstance(value, float):
+            if math.isnan(value) or math.isinf(value):
+                return None
+            return value
+        if isinstance(value, Decimal):
+            float_value = float(value)
+            if math.isnan(float_value) or math.isinf(float_value):
+                return None
+            return float_value
+        if isinstance(value, (datetime, date)):
+            return value.isoformat()
+        if isinstance(value, dict):
+            return {k: self._sanitize_value(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [self._sanitize_value(v) for v in value]
+        return value
+
+    def _sanitize_rows(self, rows: list[dict]) -> list[dict]:
+        return [self._sanitize_value(row) for row in rows]
+
+    def get_dataset_rows(self, diagram_id: str) -> list[dict] | None:
+        diagram = self.repository.get_by_id(diagram_id)
+        if not diagram:
+            return None
+        return self._sanitize_rows(diagram.rows)
 
     def update_diagram(self, diagram_id: str, data: DatasetUpdate, user_id: UUID) -> DatasetResponse | None:
         diagram = self.repository.get_by_id(diagram_id)

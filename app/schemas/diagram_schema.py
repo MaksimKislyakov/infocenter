@@ -17,6 +17,7 @@ class DatasetBase(BaseModel):
         description="Функциональный блок диаграммы: safety (Безопасность), quality (Качество), production (Производство), costs (Затраты), culture (Культура), all (Все)"
     )
     unit_id: UUID = Field(..., description="ID подразделения (unit)")
+    order: int | None = Field(None, description="Позиция диаграммы внутри блока для сохранения порядка")
     columns: list[ColumnSchema] = Field(..., description="Структура колонок")
     rows: list[dict] = Field(..., description="Данные строк")
 
@@ -26,7 +27,7 @@ class DatasetCreate(DatasetBase):
 
 
 class DatasetUpdate(DatasetBase):
-    id: UUID | None = None
+    order: int | None = None
 
 
 class DatasetResponse(DatasetBase):
@@ -34,6 +35,9 @@ class DatasetResponse(DatasetBase):
     created_by: UUID
     created_at: datetime
     updated_at: datetime
+
+    class Config:
+        from_attributes = True
 
     class Config:
         from_attributes = True

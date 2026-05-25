@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, JSON, ForeignKey, Enum as SQLEnum, DateTime
+from sqlalchemy import Column, JSON, ForeignKey, Enum as SQLEnum, DateTime, Integer
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
@@ -15,6 +15,7 @@ class Diagram(Base):
     id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     columns = Column(JSON, nullable=False)
     rows = Column(JSON, nullable=False)
+    order = Column(Integer, nullable=False, default=0)
 
     block = Column(SQLEnum(Block), nullable=False)
     unit_id = Column(PG_UUID(as_uuid=True), ForeignKey("units.id"), nullable=False)

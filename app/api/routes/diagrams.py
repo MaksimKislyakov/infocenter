@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
+from uuid import UUID
 
 from app.api.deps import get_db, get_current_active_user
 from app.schemas.diagram_schema import DatasetCreate, DatasetUpdate, DatasetResponse, DiagramAuditResponse
 from app.services.diagram_service import DiagramService
 from app.services.permission_service import PermissionService
-from app.core.enums import Action
+from app.core.enums import Action, Block
 
 router = APIRouter(prefix="/diagrams", tags=["diagrams"])
 
@@ -44,12 +45,14 @@ def create_diagram(
 def list_diagrams(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
+    block: Block | None = Query(None),
+    unit_id: UUID | None = Query(None),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_active_user),
 ):
     """Получить список диаграмм с пагинацией."""
     service = DiagramService(db)
-    return service.list_diagrams(skip, limit)
+    return service.list_diagrams(skip, limit, block, unit_id)
 
 
 @router.get("/{diagram_id}", response_model=DatasetResponse)
