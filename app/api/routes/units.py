@@ -17,6 +17,16 @@ def create_unit(
     db: Session = Depends(get_db),
     current_user=Depends(require_admin),
 ):
+    """
+    Создать новое подразделение (только админ).
+    
+    **OrgLevel (уровень организационной иерархии):**
+    - enterprise: Предприятие (верхний уровень, без parent_id)
+    - shop: Цех (средний уровень, parent_id = предприятие)
+    - area: Участок (нижний уровень, parent_id = цех)
+    
+    **parent_id:** ID родительского подразделения (nullable для enterprise)
+    """
     unit = Unit(name=name, level_type=level_type, parent_id=parent_id)
     db.add(unit)
     db.commit()
@@ -26,11 +36,13 @@ def create_unit(
 
 @router.get("/")
 def list_units(db: Session = Depends(get_db), current_user=Depends(require_admin)):
+    """Получить все подразделения."""
     return db.query(Unit).all()
 
 
 @router.get("/tree")
 def get_units_tree(db: Session = Depends(get_db), current_user=Depends(require_admin)):
+    """Получить иерархическое дерево подразделений."""
     units = db.query(Unit).all()
     units_map = {u.id: {"id": u.id, "name": u.name, "level": u.level_type, "children": []} for u in units}
     roots = []

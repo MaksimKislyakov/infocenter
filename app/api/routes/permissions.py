@@ -22,7 +22,22 @@ def grant_user_permissions(
     db: Session = Depends(get_db),
     current_user=Depends(require_admin),
 ):
-    """Массовая выдача прав пользователю (админ)"""
+    """
+    Массовая выдача прав пользователю (только админ).
+    
+    **Action (действие):**
+    - view: Просмотр (только чтение)
+    - manage: Управление (создание, редактирование, удаление)
+    - manage_permissions: Управление правами (выдача/отзыв прав другим пользователям)
+    
+    **Block (функциональный блок):**
+    - safety: Безопасность
+    - quality: Качество
+    - production: Производство
+    - costs: Затраты
+    - culture: Культура
+    - all: Все блоки сразу
+    """
     service = PermissionService(db)
     granted = service.grant_bulk(user_id, data)
     return [PermissionResponseSchema.model_validate(p) for p in granted]
@@ -35,7 +50,7 @@ def revoke_user_permissions(
     db: Session = Depends(get_db),
     current_user=Depends(require_admin),
 ):
-    """Массовый отзыв прав"""
+    """Массовый отзыв прав у пользователя."""
     service = PermissionService(db)
     count = service.revoke_bulk(user_id, permissions)
     return {"revoked": count}
@@ -47,7 +62,7 @@ def get_user_permissions(
     db: Session = Depends(get_db),
     current_user=Depends(require_admin),
 ):
-    """Получить все права пользователя"""
+    """Получить все права пользователя."""
     repo = PermissionRepository(db)
     perms = repo.get_user_permissions(user_id)
     return [
@@ -68,6 +83,6 @@ def get_units_tree(
     db: Session = Depends(get_db),
     current_user=Depends(require_admin),
 ):
-    """Получить дерево подразделений для админки"""
+    """Получить дерево подразделений для админки."""
     repo = UnitRepository(db)
     return repo.get_tree()

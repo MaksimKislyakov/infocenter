@@ -1,18 +1,21 @@
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.core.enums import Role
 
 
 class UserBase(BaseModel):
-    login: str
-    full_name: str
-    role: Role
-    job_title: Optional[str] = None
-    email: Optional[EmailStr] = None
-    is_active: bool = True
+    login: str = Field(..., description="Уникальный логин")
+    full_name: str = Field(..., description="ФИО пользователя")
+    role: Role = Field(
+        ...,
+        description="Роль: inspector (Инспектор), master (Мастер), engineer (Инженер), management (Менеджмент), admin (Администратор)"
+    )
+    job_title: Optional[str] = Field(None, description="Должность")
+    email: Optional[EmailStr] = Field(None, description="Email (уникален)")
+    is_active: bool = Field(True, description="Активен ли пользователь")
 
 
 class UserCreate(UserBase):

@@ -12,6 +12,14 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/login", response_model=Token)
 def login(form_data: LoginRequest, db: Session = Depends(get_db)):
+    """
+    Авторизация пользователя.
+    
+    Возвращает:
+    - access_token: JWT токен для API запросов (заголовок Authorization: Bearer {token})
+    - refresh_token: Токен для обновления access_token'а
+    - token_type: Тип токена (всегда "bearer")
+    """
     user = authenticate_user(db, form_data.login, form_data.password)
     if not user:
         raise HTTPException(
@@ -30,6 +38,14 @@ def login(form_data: LoginRequest, db: Session = Depends(get_db)):
 
 @router.post("/refresh", response_model=Token)
 def refresh_token(request: RefreshTokenRequest, db: Session = Depends(get_db)):
+    """
+    Обновить access_token используя refresh_token.
+    
+    Возвращает новую пару:
+    - access_token: Новый JWT токен
+    - refresh_token: Новый refresh токен
+    - token_type: "bearer"
+    """
     payload = decode_refresh_token(request.refresh_token)
     login: str | None = payload.get("sub")
     if login is None:

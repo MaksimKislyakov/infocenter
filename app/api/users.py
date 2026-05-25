@@ -17,6 +17,16 @@ def create_user(
     db: Session = Depends(get_db),
     _admin=Depends(require_admin),
 ):
+    """
+    Создать нового пользователя (только админ).
+    
+    **Role (роль пользователя):**
+    - inspector: Инспектор (просмотр)
+    - master: Мастер (управление в своём подразделении)
+    - engineer: Инженер (управление проектами)
+    - management: Менеджмент (управление подразделениями)
+    - admin: Администратор (полный доступ)
+    """
     service = UserService(db)
     try:
         return service.create_user(user_create)
@@ -29,11 +39,13 @@ def list_users(
     db: Session = Depends(get_db),
     _admin=Depends(require_admin),
 ):
+    """Получить список всех пользователей (только админ)."""
     return UserService(db).list_users()
 
 
 @router.get("/me", response_model=UserRead)
 def read_current_user(current_user=Depends(get_current_active_user)):
+    """Получить информацию о текущем пользователе."""
     return current_user
 
 
@@ -43,6 +55,7 @@ def read_user(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_active_user),
 ):
+    """Получить информацию о пользователе (админ или сам пользователь)."""
     if current_user.role != Role.ADMIN and current_user.id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient privileges")
     user = UserService(db).get_by_id(str(user_id))
@@ -58,6 +71,7 @@ def update_user(
     db: Session = Depends(get_db),
     _admin=Depends(require_admin),
 ):
+    """Обновить данные пользователя (только админ)."""
     service = UserService(db)
     try:
         user = service.update_user(str(user_id), user_update)
@@ -74,6 +88,7 @@ def delete_user(
     db: Session = Depends(get_db),
     _admin=Depends(require_admin),
 ):
+    """Удалить пользователя (только админ)."""
     deleted = UserService(db).delete_user(str(user_id))
     if deleted is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")

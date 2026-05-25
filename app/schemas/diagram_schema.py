@@ -12,14 +12,17 @@ class ColumnSchema(BaseModel):
 
 
 class DatasetBase(BaseModel):
-    block: Block
-    unit_id: UUID
-    columns: list[ColumnSchema]
-    rows: list[dict]
+    block: Block = Field(
+        ...,
+        description="Функциональный блок диаграммы: safety (Безопасность), quality (Качество), production (Производство), costs (Затраты), culture (Культура), all (Все)"
+    )
+    unit_id: UUID = Field(..., description="ID подразделения (unit)")
+    columns: list[ColumnSchema] = Field(..., description="Структура колонок")
+    rows: list[dict] = Field(..., description="Данные строк")
 
 
 class DatasetCreate(DatasetBase):
-    id: UUID | None = None
+    pass
 
 
 class DatasetUpdate(DatasetBase):
