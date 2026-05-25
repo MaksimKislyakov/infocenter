@@ -20,5 +20,41 @@ jobs:
         password: ${{ secrets.SERVER_PASSWORD_2 }}
         script: |
           cd /home/infocenter
-          
+
+          # If .env does not exist on the server, create it from GitHub Secrets
+          if [ ! -f .env ]; then
+            echo "DB_USER=${{ secrets.DB_USER }}" > .env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+            echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+
+            echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
+            echo "ALGORITHM=${{ secrets.ALGORITHM }}" >> .env
+            echo "ACCESS_TOKEN_EXPIRE_MINUTES=${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}" >> .env
+            echo "REFRESH_TOKEN_EXPIRE_DAYS=${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }}" >> .env
+
+            echo "BACKEND_HOST=${{ secrets.BACKEND_HOST }}" >> .env
+            echo "BACKEND_PORT=${{ secrets.BACKEND_PORT }}" >> .env
+
+            echo "DEFAULT_ADMIN_LOGIN=${{ secrets.DEFAULT_ADMIN_LOGIN }}" >> .env
+            echo "DEFAULT_ADMIN_PASSWORD=${{ secrets.DEFAULT_ADMIN_PASSWORD }}" >> .env
+            echo "DEFAULT_ADMIN_FULL_NAME=${{ secrets.DEFAULT_ADMIN_FULL_NAME }}" >> .env
+            echo "DEFAULT_ADMIN_EMAIL=${{ secrets.DEFAULT_ADMIN_EMAIL }}" >> .env
+            echo "DEFAULT_ADMIN_ROLE=${{ secrets.DEFAULT_ADMIN_ROLE }}" >> .env
+
+            echo "MINIO_ENDPOINT=${{ secrets.MINIO_ENDPOINT }}" >> .env
+            echo "MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }}" >> .env
+            echo "MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }}" >> .env
+            echo "MINIO_BUCKET_NAME=${{ secrets.MINIO_BUCKET_NAME }}" >> .env
+            echo "MINIO_SECURE=${{ secrets.MINIO_SECURE }}" >> .env
+            echo "MINIO_EXTERNAL_ENDPOINT=${{ secrets.MINIO_EXTERNAL_ENDPOINT }}" >> .env
+
+            echo ".env created from secrets"
+          else
+            echo ".env already exists"
+          fi
+
+          echo "Proceeding with deploy..."
+
           echo "Deploy completed successfully!"
