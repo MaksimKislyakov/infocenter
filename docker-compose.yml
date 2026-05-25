@@ -29,16 +29,12 @@ services:
     command: server /data --console-address ":9001"
 
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${BACKEND_IMAGE:-infocenter/backend:latest}
     depends_on:
       - db
       - minio
     env_file:
       - .env
-    volumes:
-      - .:/app
     environment:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}

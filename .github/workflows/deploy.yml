@@ -4,57 +4,104 @@ on:
   push:
     branches: [ main ]
 
+env:
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  SERVER_IP: ${{ secrets.SERVER_IP }}
+  SERVER_USERNAME: ${{ secrets.SERVER_USER }}
+
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Deploy to server
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: 185.56.162.117
-        username: ${{ secrets.SERVER_USER }}
-        password: ${{ secrets.SERVER_PASSWORD_2 }}
-        script: |
-          cd /home/infocenter
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-          # If .env does not exist on the server, create it from GitHub Secrets
-          if [ ! -f .env ]; then
-            echo "DB_USER=${{ secrets.DB_USER }}" > .env
-            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-            echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
-            echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
-            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+      - name: Build and Push Backend Image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/infocenter-backend:latest -f Dockerfile .
+          docker push ${{ secrets.DOCKER_USERNAME }}/infocenter-backend:latest
 
-            echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
-            echo "ALGORITHM=${{ secrets.ALGORITHM }}" >> .env
-            echo "ACCESS_TOKEN_EXPIRE_MINUTES=${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}" >> .env
-            echo "REFRESH_TOKEN_EXPIRE_DAYS=${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }}" >> .env
+      - name: Copy docker-compose and nginx to server
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ env.SERVER_IP }}
+          username: ${{ env.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PASSWORD_2 }}
+          source: "docker-compose.yml,nginx/nginx.conf,nginx/ssl"
+          target: "/home/infocenter/"
+          strip_components: 0
+          debug: false
 
-            echo "BACKEND_HOST=${{ secrets.BACKEND_HOST }}" >> .env
-            echo "BACKEND_PORT=${{ secrets.BACKEND_PORT }}" >> .env
-
-            echo "DEFAULT_ADMIN_LOGIN=${{ secrets.DEFAULT_ADMIN_LOGIN }}" >> .env
-            echo "DEFAULT_ADMIN_PASSWORD=${{ secrets.DEFAULT_ADMIN_PASSWORD }}" >> .env
-            echo "DEFAULT_ADMIN_FULL_NAME=${{ secrets.DEFAULT_ADMIN_FULL_NAME }}" >> .env
-            echo "DEFAULT_ADMIN_EMAIL=${{ secrets.DEFAULT_ADMIN_EMAIL }}" >> .env
-            echo "DEFAULT_ADMIN_ROLE=${{ secrets.DEFAULT_ADMIN_ROLE }}" >> .env
-
-            echo "MINIO_ENDPOINT=${{ secrets.MINIO_ENDPOINT }}" >> .env
-            echo "MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }}" >> .env
-            echo "MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }}" >> .env
-            echo "MINIO_BUCKET_NAME=${{ secrets.MINIO_BUCKET_NAME }}" >> .env
-            echo "MINIO_SECURE=${{ secrets.MINIO_SECURE }}" >> .env
-            echo "MINIO_EXTERNAL_ENDPOINT=${{ secrets.MINIO_EXTERNAL_ENDPOINT }}" >> .env
-
-            echo ".env created from secrets"
-          else
-            echo ".env already exists"
-          fi
-
-          echo "Proceeding with deploy..."
-
-          echo "Deploy completed successfully!"
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ env.SERVER_IP }}
+          username: ${{ env.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PASSWORD_2 }}
+          envs: DOCKER_USERNAME
+          script: |
+            set -e
+            
+            cd /home/infocenter
+            
+            # Create or update .env with environment variables
+            if [ ! -f .env ]; then
+              echo "Creating .env from secrets..."
+              echo "DB_USER=${{ secrets.DB_USER }}" > .env
+              echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+              echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+              echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+              echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+              
+              echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
+              echo "ALGORITHM=${{ secrets.ALGORITHM }}" >> .env
+              echo "ACCESS_TOKEN_EXPIRE_MINUTES=${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}" >> .env
+              echo "REFRESH_TOKEN_EXPIRE_DAYS=${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }}" >> .env
+              
+              echo "BACKEND_HOST=${{ secrets.BACKEND_HOST }}" >> .env
+              echo "BACKEND_PORT=${{ secrets.BACKEND_PORT }}" >> .env
+              
+              echo "DEFAULT_ADMIN_LOGIN=${{ secrets.DEFAULT_ADMIN_LOGIN }}" >> .env
+              echo "DEFAULT_ADMIN_PASSWORD=${{ secrets.DEFAULT_ADMIN_PASSWORD }}" >> .env
+              echo "DEFAULT_ADMIN_FULL_NAME=${{ secrets.DEFAULT_ADMIN_FULL_NAME }}" >> .env
+              echo "DEFAULT_ADMIN_EMAIL=${{ secrets.DEFAULT_ADMIN_EMAIL }}" >> .env
+              echo "DEFAULT_ADMIN_ROLE=${{ secrets.DEFAULT_ADMIN_ROLE }}" >> .env
+              
+              echo "MINIO_ENDPOINT=${{ secrets.MINIO_ENDPOINT }}" >> .env
+              echo "MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }}" >> .env
+              echo "MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }}" >> .env
+              echo "MINIO_BUCKET_NAME=${{ secrets.MINIO_BUCKET_NAME }}" >> .env
+              echo "MINIO_SECURE=${{ secrets.MINIO_SECURE }}" >> .env
+              echo "MINIO_EXTERNAL_ENDPOINT=${{ secrets.MINIO_EXTERNAL_ENDPOINT }}" >> .env
+            fi
+            
+            # Always update BACKEND_IMAGE to ensure correct image tag is pulled
+            sed -i '/^BACKEND_IMAGE=/d' .env || true
+            echo "BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/infocenter-backend:latest" >> .env
+            
+            echo "--- Pulling images ---"
+            docker compose pull
+            
+            echo "--- Starting containers ---"
+            docker compose up -d --remove-orphans
+            
+            echo "Waiting for containers to stabilize..."
+            sleep 10
+            
+            echo "--- Checking container status ---"
+            docker compose ps
+            
+            echo "--- Cleanup old images ---"
+            docker image prune -f
+            
+            echo "--- Reloading nginx ---"
+            docker compose exec -T nginx nginx -s reload || echo "Nginx reload completed"
+            
+            echo "Deployment successful!"
