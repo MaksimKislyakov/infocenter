@@ -18,21 +18,22 @@ from app.models.user_model import User
 
 
 settings = get_settings()
-admin_engine = create_engine(f"postgresql+psycopg://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/postgres", future=True)
-with admin_engine.connect() as conn:
-    result = conn.execute(text("SELECT 1 FROM pg_database WHERE datname = :db_name"), {"db_name": settings.DB_NAME})
-    if not result.fetchone():
-        conn.execute(text(f"CREATE DATABASE \"{settings.DB_NAME}\""))
-        conn.commit()
-        print(f"Database {settings.DB_NAME} created.")
-    else:
-        print(f"Database {settings.DB_NAME} already exists.")
-admin_engine.dispose()
 
-Base.metadata.drop_all(bind=engine)
-Base.metadata.create_all(bind=engine)
+# Defer heavy DB and external initialization when running tests.
+if not settings.TESTING:
+    admin_engine = create_engine(f"postgresql+psycopg://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/postgres", future=True)
+    with admin_engine.connect() as conn:
+        result = conn.execute(text("SELECT 1 FROM pg_database WHERE datname = :db_name"), {"db_name": settings.DB_NAME})
+        if not result.fetchone():
+            conn.execute(text(f"CREATE DATABASE \"{settings.DB_NAME}\""))
+            conn.commit()
+            print(f"Database {settings.DB_NAME} created.")
+        else:
+            print(f"Database {settings.DB_NAME} already exists.")
+    admin_engine.dispose()
 
-settings = get_settings()
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
 
 
 def create_default_admin():
@@ -85,9 +86,10 @@ def create_default_units():
     finally:
         db.close()
 
-create_default_units()
-create_default_admin()
-initialize_minio()
+if not settings.TESTING:
+    create_default_units()
+    create_default_admin()
+    initialize_minio()
 
 app = FastAPI(title='Check Backend')
 
