@@ -9,6 +9,8 @@ env:
   SERVER_IP: ${{ secrets.SERVER_IP }}
   SERVER_USERNAME: ${{ secrets.SERVER_USER }}
 
+# check ci
+
 jobs:
   deploy:
     runs-on: ubuntu-22.04
