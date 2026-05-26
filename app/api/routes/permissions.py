@@ -34,7 +34,7 @@ def grant_user_permissions(
     - safety: Безопасность
     - quality: Качество
     - production: Производство
-    - costs: Затраты
+    - economy: Затраты
     - culture: Культура
     - all: Все блоки сразу
     """

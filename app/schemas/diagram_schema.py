@@ -14,7 +14,7 @@ class ColumnSchema(BaseModel):
 class DatasetBase(BaseModel):
     block: Block = Field(
         ...,
-        description="Функциональный блок диаграммы: safety (Безопасность), quality (Качество), production (Производство), costs (Затраты), culture (Культура), all (Все)",
+        description="Функциональный блок диаграммы: safety (Безопасность), quality (Качество), production (Производство), economy (Затраты), culture (Культура), all (Все)",
     )
     unit_id: UUID = Field(..., description="ID подразделения (unit)")
     order: int | None = Field(

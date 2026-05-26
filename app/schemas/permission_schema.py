@@ -9,7 +9,7 @@ class PermissionGrantSchema(BaseModel):
     unit_id: UUID = Field(..., description="ID подразделения")
     block: Block = Field(
         ...,
-        description="Блок: safety (Безопасность), quality (Качество), production (Производство), costs (Затраты), culture (Культура), all (Все)",
+        description="Блок: safety (Безопасность), quality (Качество), production (Производство), economy (Затраты), culture (Культура), all (Все)",
     )
     action: Action = Field(
         ...,
@@ -35,7 +35,7 @@ class PermissionResponseSchema(BaseModel):
     unit: UnitBriefSchema = Field(..., description="Подразделение")
     block: Block = Field(
         ...,
-        description="Блок: safety (Безопасность), quality (Качество), production (Производство), costs (Затраты), culture (Культура), all (Все)",
+        description="Блок: safety (Безопасность), quality (Качество), production (Производство), economy (Затраты), culture (Культура), all (Все)",
     )
     action: Action = Field(
         ...,

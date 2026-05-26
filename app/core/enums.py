@@ -19,7 +19,7 @@ class Block(StrEnum):
     SAFETY = "safety"
     QUALITY = "quality"
     PRODUCTION = "production"
-    COSTS = "costs"
+    ECONOMY = "economy"
     CULTURE = "culture"
     ALL = "all"
 

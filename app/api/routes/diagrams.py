@@ -29,7 +29,7 @@ def create_diagram(
     - safety: Безопасность
     - quality: Качество
     - production: Производство
-    - costs: Затраты
+    - economy: Затраты
     - culture: Культура
     - all: Все
 
