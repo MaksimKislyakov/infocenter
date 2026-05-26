@@ -6,6 +6,7 @@ from minio import Minio
 from minio.error import S3Error
 
 from app.core.config import get_settings
+from app.core.exceptions import MinioError
 
 settings = get_settings()
 

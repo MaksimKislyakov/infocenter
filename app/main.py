@@ -1,6 +1,18 @@
-from fastapi import FastAPI
+import logging
+
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi import status
 from sqlalchemy import create_engine, text
+from sqlalchemy.exc import IntegrityError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+try:
+    import httpx
+except ImportError:
+    httpx = None
 
 from app.api.routes.auth import router as auth_router
 from app.api.routes.users import router as users_router
@@ -11,6 +23,7 @@ from app.api.routes.charts import router as charts_router
 from app.api.routes.datasets import router as datasets_router
 
 from app.core.config import get_settings
+from app.core.exceptions import AppError
 from app.db.session import Base, engine, SessionLocal
 from app.services.auth_service import get_password_hash
 from app.services.minio_service import MinioService
@@ -100,6 +113,66 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": exc.errors()},
+    )
+
+
+@app.exception_handler(IntegrityError)
+async def sqlalchemy_integrity_exception_handler(request: Request, exc: IntegrityError):
+    logging.exception("Database integrity error")
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content={"detail": "Database integrity error", "error": str(exc.orig) if hasattr(exc, "orig") else str(exc)},
+    )
+
+
+@app.exception_handler(ValueError)
+async def value_error_handler(request: Request, exc: ValueError):
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content={"detail": str(exc)},
+    )
+
+
+@app.exception_handler(AppError)
+async def app_error_handler(request: Request, exc: AppError):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+    )
+
+
+if httpx is not None:
+    @app.exception_handler(httpx.HTTPStatusError)
+    async def httpx_exception_handler(request: Request, exc):
+        response = exc.response
+        return JSONResponse(
+            status_code=response.status_code,
+            content={"detail": str(exc), "status_code": response.status_code},
+        )
+
+
+@app.exception_handler(Exception)
+async def unexpected_exception_handler(request: Request, exc: Exception):
+    logging.exception("Unhandled exception")
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": "Internal server error"},
+    )
 
 app.include_router(auth_router)
 app.include_router(users_router)
