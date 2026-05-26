@@ -12,7 +12,7 @@ class ChartRepository:
 
     def create(self, data: ChartCreate) -> ChartConfig:
         chart = ChartConfig(
-            dataset_id=data.dataset_id,
+            diagram_id=data.diagram_id,
             title=data.title,
             chart_type=data.chart_type,
             mapping=data.mapping,
@@ -28,10 +28,10 @@ class ChartRepository:
     def get_by_id(self, chart_id: int) -> ChartConfig | None:
         return self.db.query(ChartConfig).filter(ChartConfig.id == chart_id).first()
 
-    def get_all(self, dataset_id: UUID | None = None) -> list[ChartConfig]:
+    def get_all(self, diagram_id: UUID | None = None) -> list[ChartConfig]:
         query = self.db.query(ChartConfig)
-        if dataset_id is not None:
-            query = query.filter(ChartConfig.dataset_id == dataset_id)
+        if diagram_id is not None:
+            query = query.filter(ChartConfig.diagram_id == diagram_id)
         return query.order_by(ChartConfig.order.asc(), ChartConfig.created_at.asc()).all()
 
     def update(self, chart: ChartConfig, data: ChartUpdate) -> ChartConfig:
@@ -39,8 +39,8 @@ class ChartRepository:
             chart.title = data.title
         if data.chart_type is not None:
             chart.chart_type = data.chart_type
-        if data.dataset_id is not None:
-            chart.dataset_id = data.dataset_id
+        if data.diagram_id is not None:
+            chart.diagram_id = data.diagram_id
         if data.mapping is not None:
             chart.mapping = data.mapping
         if data.ui_config is not None:

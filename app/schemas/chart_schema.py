@@ -11,7 +11,7 @@ class ChartBase(BaseModel):
 
     title: str = Field(..., description="Название графика")
     chart_type: str = Field(..., alias="chartType", description="Тип графика: bar, pie, line, scatter")
-    dataset_id: UUID = Field(..., alias="datasetId", description="ID источника данных (диаграммы)")
+    diagram_id: UUID = Field(..., alias="diagramId", description="ID диаграммы")
     mapping: dict[str, Any] = Field(..., description="Маппинг данных для графика")
     ui_config: dict[str, Any] = Field(..., alias="uiConfig", description="UI-настройки графика")
     order: int | None = Field(None, description="Позиция графика в списке")
@@ -26,7 +26,7 @@ class ChartUpdate(BaseModel):
 
     title: str | None = Field(None, description="Название графика")
     chart_type: str | None = Field(None, alias="chartType", description="Тип графика")
-    dataset_id: UUID | None = Field(None, alias="datasetId", description="ID источника данных")
+    diagram_id: UUID | None = Field(None, alias="diagramId", description="ID диаграммы")
     mapping: dict[str, Any] | None = Field(None, description="Маппинг данных")
     ui_config: dict[str, Any] | None = Field(None, alias="uiConfig", description="UI-настройки графика")
     order: int | None = Field(None, description="Позиция графика в списке")

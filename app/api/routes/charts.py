@@ -11,13 +11,13 @@ router = APIRouter(prefix="/charts", tags=["charts"])
 
 @router.get("/", response_model=list[ChartResponse])
 def list_charts(
-    dataset_id: UUID | None = Query(None, alias="datasetId"),
+    diagram_id: UUID | None = Query(None, alias="diagramId"),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_active_user),
 ):
-    """Получить конфиги графиков. Можно фильтровать по datasetId."""
+    """Получить конфиги графиков. Можно фильтровать по diagramId."""
     service = ChartService(db)
-    return service.list_charts(dataset_id)
+    return service.list_charts(diagram_id)
 
 
 @router.post("/", response_model=ChartResponse, status_code=status.HTTP_201_CREATED)

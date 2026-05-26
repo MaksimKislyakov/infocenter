@@ -42,6 +42,7 @@ def test_admin_can_create_diagram_with_chart_config():
     assert create_unit_response.status_code == 201
     unit_id = create_unit_response.json()["id"]
 
+    # Выдаём пользователю права manage в блоке safety для Цех-2
     grant_response = client.post(
         f"/permissions/users/{user_id}",
         headers=auth_headers,
@@ -82,12 +83,12 @@ def test_admin_can_create_diagram_with_chart_config():
         json={
             "title": "Test Chart",
             "chartType": "bar",
-            "datasetId": diagram["id"],
+            "diagramId": diagram["id"],
             "mapping": {"metric": "metric"},
             "uiConfig": {"legend": True},
         },
     )
     assert chart_response.status_code == 201
     chart = chart_response.json()
-    assert chart["datasetId"] == diagram["id"]
+    assert chart["diagramId"] == diagram["id"]
     assert chart["title"] == "Test Chart"

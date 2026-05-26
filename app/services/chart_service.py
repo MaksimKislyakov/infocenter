@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy.orm import Session
 
 from app.repositories.chart_repository import ChartRepository
@@ -18,8 +20,8 @@ class ChartService:
             return None
         return ChartResponse.model_validate(chart)
 
-    def list_charts(self, dataset_id: str | None = None) -> list[ChartResponse]:
-        charts = self.repository.get_all(dataset_id)
+    def list_charts(self, diagram_id: UUID | None = None) -> list[ChartResponse]:
+        charts = self.repository.get_all(diagram_id)
         return [ChartResponse.model_validate(chart) for chart in charts]
 
     def update_chart(self, chart_id: int, data: ChartUpdate) -> ChartResponse | None:
