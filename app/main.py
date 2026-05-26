@@ -29,16 +29,21 @@ from app.services.auth_service import get_password_hash
 from app.services.minio_service import MinioService
 from app.models.user_model import User
 
-
 settings = get_settings()
 
 # Defer heavy DB and external initialization when running tests.
 if not settings.TESTING:
-    admin_engine = create_engine(f"postgresql+psycopg://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/postgres", future=True)
+    admin_engine = create_engine(
+        f"postgresql+psycopg://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/postgres",
+        future=True,
+    )
     with admin_engine.connect() as conn:
-        result = conn.execute(text("SELECT 1 FROM pg_database WHERE datname = :db_name"), {"db_name": settings.DB_NAME})
+        result = conn.execute(
+            text("SELECT 1 FROM pg_database WHERE datname = :db_name"),
+            {"db_name": settings.DB_NAME},
+        )
         if not result.fetchone():
-            conn.execute(text(f"CREATE DATABASE \"{settings.DB_NAME}\""))
+            conn.execute(text(f'CREATE DATABASE "{settings.DB_NAME}"'))
             conn.commit()
             print(f"Database {settings.DB_NAME} created.")
         else:
@@ -52,7 +57,9 @@ if not settings.TESTING:
 def create_default_admin():
     db = SessionLocal()
     try:
-        admin = db.query(User).filter(User.login == settings.DEFAULT_ADMIN_LOGIN).first()
+        admin = (
+            db.query(User).filter(User.login == settings.DEFAULT_ADMIN_LOGIN).first()
+        )
         if not admin:
             admin = User(
                 login=settings.DEFAULT_ADMIN_LOGIN,
@@ -78,16 +85,17 @@ def initialize_minio():
     except Exception as e:
         print(f"MinIO initialization failed: {e}")
 
+
 def create_default_units():
     """Создаёт 3 базовых юнита, если их нет"""
     db = SessionLocal()
     try:
         from app.core.enums import OrgLevel
         from app.models.unit_model import Unit
-        
+
         defaults = [
             ("Предприятие 999", OrgLevel.ENTERPRISE, None),
-            ("Цех 999", OrgLevel.SHOP, None),  
+            ("Цех 999", OrgLevel.SHOP, None),
             ("Участок 999", OrgLevel.AREA, None),
         ]
         for name, level, parent in defaults:
@@ -99,16 +107,17 @@ def create_default_units():
     finally:
         db.close()
 
+
 if not settings.TESTING:
     create_default_units()
     create_default_admin()
     initialize_minio()
 
-app = FastAPI(title='Check Backend')
+app = FastAPI(title="Check Backend")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # vse
+    allow_origins=["*"],  # vse
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -136,7 +145,10 @@ async def sqlalchemy_integrity_exception_handler(request: Request, exc: Integrit
     logging.exception("Database integrity error")
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
-        content={"detail": "Database integrity error", "error": str(exc.orig) if hasattr(exc, "orig") else str(exc)},
+        content={
+            "detail": "Database integrity error",
+            "error": str(exc.orig) if hasattr(exc, "orig") else str(exc),
+        },
     )
 
 
@@ -157,6 +169,7 @@ async def app_error_handler(request: Request, exc: AppError):
 
 
 if httpx is not None:
+
     @app.exception_handler(httpx.HTTPStatusError)
     async def httpx_exception_handler(request: Request, exc):
         response = exc.response
@@ -174,6 +187,7 @@ async def unexpected_exception_handler(request: Request, exc: Exception):
         content={"detail": "Internal server error"},
     )
 
+
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(diagrams_router)
@@ -182,12 +196,12 @@ app.include_router(datasets_router)
 app.include_router(permissions_router)
 app.include_router(units_router)
 
-@app.get('/')
+
+@app.get("/")
 def root():
-    return {'message': 'Hello FastAPI + PostgreSQL'}
+    return {"message": "Hello FastAPI + PostgreSQL"}
 
 
-@app.get('/health')
+@app.get("/health")
 def health():
-    return {'status': 'ok'}
-
+    return {"status": "ok"}

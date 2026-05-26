@@ -19,6 +19,9 @@ pydantic = {extras = ["email"], version = "^2.13.1"}
 minio = "^7.2.7"
 python-multipart = "^0.0.26"
 alembic = "^1.18.4"
+black = "^26.5.1"
+ruff = "^0.15.14"
+mypy = "^2.1.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.4.0"

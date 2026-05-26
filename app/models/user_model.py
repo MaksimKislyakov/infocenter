@@ -21,8 +21,7 @@ class User(Base):
     password_hash = Column(String(length=255), nullable=False)
     refresh_token = Column(String(length=1024), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
-    
-    permissions = relationship("UserUnitPermission", back_populates="user", cascade="all, delete-orphan")
 
-
-
+    permissions = relationship(
+        "UserUnitPermission", back_populates="user", cascade="all, delete-orphan"
+    )

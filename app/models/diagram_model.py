@@ -21,7 +21,9 @@ class Diagram(Base):
     unit_id = Column(PG_UUID(as_uuid=True), ForeignKey("units.id"), nullable=False)
     created_by = Column(PG_UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    
+    updated_at = Column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+
     unit = relationship("Unit", backref="diagrams")
     creator = relationship("User", backref="created_diagrams")

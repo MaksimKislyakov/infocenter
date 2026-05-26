@@ -42,7 +42,9 @@ class UserRepository:
         self.db.refresh(user)
         return user
 
-    def update(self, user: User, user_update: UserUpdate, password_hash: Optional[str] = None) -> User:
+    def update(
+        self, user: User, user_update: UserUpdate, password_hash: Optional[str] = None
+    ) -> User:
         if user_update.login is not None:
             user.login = user_update.login
         if user_update.full_name is not None:

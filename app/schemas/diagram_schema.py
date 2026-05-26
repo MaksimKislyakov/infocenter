@@ -14,10 +14,12 @@ class ColumnSchema(BaseModel):
 class DatasetBase(BaseModel):
     block: Block = Field(
         ...,
-        description="Функциональный блок диаграммы: safety (Безопасность), quality (Качество), production (Производство), costs (Затраты), culture (Культура), all (Все)"
+        description="Функциональный блок диаграммы: safety (Безопасность), quality (Качество), production (Производство), costs (Затраты), culture (Культура), all (Все)",
     )
     unit_id: UUID = Field(..., description="ID подразделения (unit)")
-    order: int | None = Field(None, description="Позиция диаграммы внутри блока для сохранения порядка")
+    order: int | None = Field(
+        None, description="Позиция диаграммы внутри блока для сохранения порядка"
+    )
     columns: list[ColumnSchema] = Field(..., description="Структура колонок")
     rows: list[dict] = Field(..., description="Данные строк")
 

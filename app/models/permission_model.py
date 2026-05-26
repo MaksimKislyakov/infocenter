@@ -18,7 +18,9 @@ class UserUnitPermission(Base):
 
     # Уникальность: один пользователь не может иметь дублирующее право
     __table_args__ = (
-        UniqueConstraint("user_id", "unit_id", "block", "action", name="uq_user_unit_perm"),
+        UniqueConstraint(
+            "user_id", "unit_id", "block", "action", name="uq_user_unit_perm"
+        ),
     )
 
     user = relationship("User", back_populates="permissions")

@@ -19,7 +19,7 @@ def create_user(
 ):
     """
     Создать нового пользователя (только админ).
-    
+
     **Role (роль пользователя):**
     - inspector: Инспектор (просмотр)
     - master: Мастер (управление в своём подразделении)
@@ -57,10 +57,14 @@ def read_user(
 ):
     """Получить информацию о пользователе (админ или сам пользователь)."""
     if current_user.role != Role.ADMIN and current_user.id != user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient privileges")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient privileges"
+        )
     user = UserService(db).get_by_id(str(user_id))
     if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     return user
 
 
@@ -78,7 +82,9 @@ def update_user(
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     return user
 
 
@@ -91,6 +97,7 @@ def delete_user(
     """Удалить пользователя (только админ)."""
     deleted = UserService(db).delete_user(str(user_id))
     if deleted is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     return {"detail": "User deleted"}
-

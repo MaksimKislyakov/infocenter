@@ -3,6 +3,7 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
+
 def decode_access_token(token: str) -> dict:
     try:
         return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])

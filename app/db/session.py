@@ -17,9 +17,7 @@ if settings.TESTING:
         poolclass=StaticPool,
     )
 else:
-    SQLALCHEMY_DATABASE_URL = (
-        f"postgresql+psycopg://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
-    )
+    SQLALCHEMY_DATABASE_URL = f"postgresql+psycopg://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
     engine = create_engine(SQLALCHEMY_DATABASE_URL, future=True)
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)

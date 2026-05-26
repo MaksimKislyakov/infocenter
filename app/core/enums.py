@@ -21,7 +21,7 @@ class Block(StrEnum):
     PRODUCTION = "production"
     COSTS = "costs"
     CULTURE = "culture"
-    ALL = "all" 
+    ALL = "all"
 
 
 class Action(StrEnum):

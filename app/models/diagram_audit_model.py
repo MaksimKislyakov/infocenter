@@ -11,7 +11,9 @@ class DiagramAudit(Base):
     __tablename__ = "diagram_audit"
 
     id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    diagram_id = Column(PG_UUID(as_uuid=True), ForeignKey("diagrams.id"), nullable=False)
+    diagram_id = Column(
+        PG_UUID(as_uuid=True), ForeignKey("diagrams.id"), nullable=False
+    )
     updated_by = Column(PG_UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     operation = Column(Integer, nullable=False)  # 0: create, 1: update, 2: delete

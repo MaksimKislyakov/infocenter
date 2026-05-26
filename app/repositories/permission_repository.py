@@ -13,15 +13,19 @@ class PermissionRepository:
 
     def grant(self, user_id: UUID, perm: PermissionGrantSchema) -> UserUnitPermission:
         """Выдать одно право (идемпотентно)"""
-        existing = self.db.query(UserUnitPermission).filter(
-            UserUnitPermission.user_id == user_id,
-            UserUnitPermission.unit_id == perm.unit_id,
-            UserUnitPermission.block == perm.block,
-            UserUnitPermission.action == perm.action,
-        ).first()
+        existing = (
+            self.db.query(UserUnitPermission)
+            .filter(
+                UserUnitPermission.user_id == user_id,
+                UserUnitPermission.unit_id == perm.unit_id,
+                UserUnitPermission.block == perm.block,
+                UserUnitPermission.action == perm.action,
+            )
+            .first()
+        )
         if existing:
             return existing
-        
+
         new_perm = UserUnitPermission(
             user_id=user_id,
             unit_id=perm.unit_id,
@@ -35,12 +39,16 @@ class PermissionRepository:
 
     def revoke(self, user_id: UUID, perm: PermissionGrantSchema) -> bool:
         """Отозвать право"""
-        target = self.db.query(UserUnitPermission).filter(
-            UserUnitPermission.user_id == user_id,
-            UserUnitPermission.unit_id == perm.unit_id,
-            UserUnitPermission.block == perm.block,
-            UserUnitPermission.action == perm.action,
-        ).first()
+        target = (
+            self.db.query(UserUnitPermission)
+            .filter(
+                UserUnitPermission.user_id == user_id,
+                UserUnitPermission.unit_id == perm.unit_id,
+                UserUnitPermission.block == perm.block,
+                UserUnitPermission.action == perm.action,
+            )
+            .first()
+        )
         if not target:
             return False
         self.db.delete(target)
@@ -56,13 +64,18 @@ class PermissionRepository:
             .all()
         )
 
-    def check_direct_permission(self, user_id: UUID, unit_id: UUID, block: Block, action: Action) -> bool:
+    def check_direct_permission(
+        self, user_id: UUID, unit_id: UUID, block: Block, action: Action
+    ) -> bool:
         """Проверка прямого права (без наследования)"""
-        return self.db.query(
-            UserUnitPermission.id
-        ).filter(
-            UserUnitPermission.user_id == user_id,
-            UserUnitPermission.unit_id == unit_id,
-            UserUnitPermission.block.in_([block, Block.ALL]),
-            UserUnitPermission.action == action,
-        ).first() is not None
+        return (
+            self.db.query(UserUnitPermission.id)
+            .filter(
+                UserUnitPermission.user_id == user_id,
+                UserUnitPermission.unit_id == unit_id,
+                UserUnitPermission.block.in_([block, Block.ALL]),
+                UserUnitPermission.action == action,
+            )
+            .first()
+            is not None
+        )

@@ -5,7 +5,12 @@ import math
 from sqlalchemy.orm import Session
 from uuid import UUID
 from app.repositories.diagram_repository import DiagramRepository
-from app.schemas.diagram_schema import DatasetCreate, DatasetUpdate, DatasetResponse, DiagramAuditResponse
+from app.schemas.diagram_schema import (
+    DatasetCreate,
+    DatasetUpdate,
+    DatasetResponse,
+    DiagramAuditResponse,
+)
 
 
 class DiagramService:
@@ -22,7 +27,9 @@ class DiagramService:
             return None
         return DatasetResponse.model_validate(diagram)
 
-    def list_diagrams(self, skip: int = 0, limit: int = 100, block=None, unit_id=None) -> list[DatasetResponse]:
+    def list_diagrams(
+        self, skip: int = 0, limit: int = 100, block=None, unit_id=None
+    ) -> list[DatasetResponse]:
         diagrams = self.repository.get_all(skip, limit, block, unit_id)
         return [DatasetResponse.model_validate(d) for d in diagrams]
 
@@ -53,7 +60,9 @@ class DiagramService:
             return None
         return self._sanitize_rows(diagram.rows)
 
-    def update_diagram(self, diagram_id: str, data: DatasetUpdate, user_id: UUID) -> DatasetResponse | None:
+    def update_diagram(
+        self, diagram_id: str, data: DatasetUpdate, user_id: UUID
+    ) -> DatasetResponse | None:
         diagram = self.repository.get_by_id(diagram_id)
         if not diagram:
             return None
@@ -67,6 +76,8 @@ class DiagramService:
         self.repository.delete(diagram, user_id)
         return True
 
-    def get_diagram_audit_logs(self, diagram_id: str, skip: int = 0, limit: int = 100) -> list[DiagramAuditResponse]:
+    def get_diagram_audit_logs(
+        self, diagram_id: str, skip: int = 0, limit: int = 100
+    ) -> list[DiagramAuditResponse]:
         logs = self.repository.get_audit_logs(diagram_id, skip, limit)
         return [DiagramAuditResponse.model_validate(log) for log in logs]

@@ -16,4 +16,6 @@ class Unit(Base):
     parent_id = Column(PG_UUID(as_uuid=True), ForeignKey("units.id"), nullable=True)
 
     parent = relationship("Unit", remote_side=[id], backref="children")
-    permissions = relationship("UserUnitPermission", back_populates="unit", cascade="all, delete-orphan")
+    permissions = relationship(
+        "UserUnitPermission", back_populates="unit", cascade="all, delete-orphan"
+    )

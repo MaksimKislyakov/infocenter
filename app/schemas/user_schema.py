@@ -11,7 +11,7 @@ class UserBase(BaseModel):
     full_name: str = Field(..., description="ФИО пользователя")
     role: Role = Field(
         ...,
-        description="Роль: inspector (Инспектор), master (Мастер), engineer (Инженер), management (Менеджмент), admin (Администратор)"
+        description="Роль: inspector (Инспектор), master (Мастер), engineer (Инженер), management (Менеджмент), admin (Администратор)",
     )
     job_title: Optional[str] = Field(None, description="Должность")
     email: Optional[EmailStr] = Field(None, description="Email (уникален)")

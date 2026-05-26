@@ -41,7 +41,9 @@ class UserService:
             existing = self.repo.get_by_email(user_update.email)
             if existing is not None and existing.id != user.id:
                 raise ValueError("Email already registered")
-        password_hash = get_password_hash(user_update.password) if user_update.password else None
+        password_hash = (
+            get_password_hash(user_update.password) if user_update.password else None
+        )
         return self.repo.update(user, user_update, password_hash)
 
     def delete_user(self, user_id: str):

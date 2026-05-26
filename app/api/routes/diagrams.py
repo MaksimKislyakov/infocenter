@@ -3,7 +3,12 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 
 from app.api.deps import get_db, get_current_active_user
-from app.schemas.diagram_schema import DatasetCreate, DatasetUpdate, DatasetResponse, DiagramAuditResponse
+from app.schemas.diagram_schema import (
+    DatasetCreate,
+    DatasetUpdate,
+    DatasetResponse,
+    DiagramAuditResponse,
+)
 from app.services.diagram_service import DiagramService
 from app.services.permission_service import PermissionService
 from app.core.enums import Action, Block
@@ -19,7 +24,7 @@ def create_diagram(
 ):
     """
     Создать новую диаграмму.
-    
+
     **Block (функциональный блок):**
     - safety: Безопасность
     - quality: Качество
@@ -27,16 +32,20 @@ def create_diagram(
     - costs: Затраты
     - culture: Культура
     - all: Все
-    
+
     Автоматически добавляет:
     - created_by: ID текущего пользователя
     - created_at: Текущая дата/время
     - updated_at: Текущая дата/время
     """
     perm_service = PermissionService(db)
-    if not perm_service.has_access(current_user.id, data.unit_id, data.block, Action.MANAGE):
-        raise HTTPException(status_code=403, detail="Нет прав на создание в этом блоке/подразделении")
-    
+    if not perm_service.has_access(
+        current_user.id, data.unit_id, data.block, Action.MANAGE
+    ):
+        raise HTTPException(
+            status_code=403, detail="Нет прав на создание в этом блоке/подразделении"
+        )
+
     service = DiagramService(db)
     return service.create_diagram(data, current_user.id)
 
@@ -78,7 +87,7 @@ def update_diagram(
 ):
     """
     Обновить существующую диаграмму.
-    
+
     При обновлении автоматически:
     - Обновляется updated_at на текущее время
     - Создается запись в таблице audit (diagram_audit) с:
@@ -101,7 +110,7 @@ def delete_diagram(
 ):
     """
     Удалить диаграмму.
-    
+
     При удалении создается запись в diagram_audit с operation=2 (delete).
     """
     service = DiagramService(db)
@@ -119,12 +128,12 @@ def get_diagram_audit_logs(
 ):
     """
     Получить журнал изменений диаграммы (аудит).
-    
+
     **Operation (тип операции):**
     - 0: Создание (operation=0)
     - 1: Обновление (operation=1)
     - 2: Удаление (operation=2)
-    
+
     Возвращает записи в обратном порядке (новые первыми).
     """
     service = DiagramService(db)

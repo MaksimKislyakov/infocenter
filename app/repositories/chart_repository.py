@@ -32,7 +32,9 @@ class ChartRepository:
         query = self.db.query(ChartConfig)
         if diagram_id is not None:
             query = query.filter(ChartConfig.diagram_id == diagram_id)
-        return query.order_by(ChartConfig.order.asc(), ChartConfig.created_at.asc()).all()
+        return query.order_by(
+            ChartConfig.order.asc(), ChartConfig.created_at.asc()
+        ).all()
 
     def update(self, chart: ChartConfig, data: ChartUpdate) -> ChartConfig:
         if data.title is not None:

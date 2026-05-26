@@ -10,10 +10,14 @@ class ChartBase(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     title: str = Field(..., description="Название графика")
-    chart_type: str = Field(..., alias="chartType", description="Тип графика: bar, pie, line, scatter")
+    chart_type: str = Field(
+        ..., alias="chartType", description="Тип графика: bar, pie, line, scatter"
+    )
     diagram_id: UUID = Field(..., alias="diagramId", description="ID диаграммы")
     mapping: dict[str, Any] = Field(..., description="Маппинг данных для графика")
-    ui_config: dict[str, Any] = Field(..., alias="uiConfig", description="UI-настройки графика")
+    ui_config: dict[str, Any] = Field(
+        ..., alias="uiConfig", description="UI-настройки графика"
+    )
     order: int | None = Field(None, description="Позиция графика в списке")
 
 
@@ -28,7 +32,9 @@ class ChartUpdate(BaseModel):
     chart_type: str | None = Field(None, alias="chartType", description="Тип графика")
     diagram_id: UUID | None = Field(None, alias="diagramId", description="ID диаграммы")
     mapping: dict[str, Any] | None = Field(None, description="Маппинг данных")
-    ui_config: dict[str, Any] | None = Field(None, alias="uiConfig", description="UI-настройки графика")
+    ui_config: dict[str, Any] | None = Field(
+        None, alias="uiConfig", description="UI-настройки графика"
+    )
     order: int | None = Field(None, description="Позиция графика в списке")
 
 

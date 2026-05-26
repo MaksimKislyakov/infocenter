@@ -1,4 +1,5 @@
 import os
+
 os.environ["TESTING"] = "true"
 
 from fastapi.testclient import TestClient
@@ -26,8 +27,12 @@ def test_admin_can_create_diagram_with_chart_config():
     units_response = client.get("/units/", headers=auth_headers)
     assert units_response.status_code == 200
     units = units_response.json()
-    enterprise = next((unit for unit in units if unit["level_type"] == "enterprise"), None)
-    assert enterprise is not None, "Не найдено подразделение уровня enterprise для создания Цеха"
+    enterprise = next(
+        (unit for unit in units if unit["level_type"] == "enterprise"), None
+    )
+    assert (
+        enterprise is not None
+    ), "Не найдено подразделение уровня enterprise для создания Цеха"
 
     # Создаём новый юнит Цех-2
     create_unit_response = client.post(
@@ -58,7 +63,9 @@ def test_admin_can_create_diagram_with_chart_config():
     )
     assert grant_response.status_code == 200
     granted_permissions = grant_response.json()
-    assert any(p["block"] == "safety" and p["action"] == "manage" for p in granted_permissions)
+    assert any(
+        p["block"] == "safety" and p["action"] == "manage" for p in granted_permissions
+    )
 
     # Создаём диаграмму в блоке safety для Цех-2
     diagram_response = client.post(

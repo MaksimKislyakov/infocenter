@@ -36,7 +36,12 @@ class MinioService:
         except S3Error as e:
             raise Exception(f"MinIO bucket error: {e}")
 
-    def upload_file(self, file_data: bytes, file_name: str, content_type: str = "application/octet-stream") -> str:
+    def upload_file(
+        self,
+        file_data: bytes,
+        file_name: str,
+        content_type: str = "application/octet-stream",
+    ) -> str:
         object_name = f"{uuid.uuid4()}_{file_name}"
         try:
             self.client.put_object(
@@ -46,8 +51,8 @@ class MinioService:
                 length=len(file_data),
                 content_type=content_type,
             )
-            
-            external_endpoint = self.external_endpoint.rstrip('/')
+
+            external_endpoint = self.external_endpoint.rstrip("/")
             return f"{external_endpoint}/{self.bucket_name}/{object_name}"
         except S3Error as e:
             raise Exception(f"MinIO upload error: {e}")
