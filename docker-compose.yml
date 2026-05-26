@@ -27,9 +27,7 @@ services:
     command: server /data --console-address ":9001"
 
   backend:
-    build: 
-      context: .
-      dockerfile: Dockerfile
+    image: ${BACKEND_IMAGE:-infocenter/backend:latest}
     depends_on:
       - db
       - minio
