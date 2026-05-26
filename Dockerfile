@@ -7,11 +7,13 @@ RUN apt-get update && apt-get install -y \
     libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY . .
+COPY pyproject.toml poetry.lock* ./
 
 RUN pip install poetry && \
     poetry config virtualenvs.create false && \
-    poetry install --no-interaction --no-ansi --only main
+    poetry install --no-interaction --no-ansi --no-root --only main
+
+COPY . .
 
 ENV PYTHONPATH=/app
 
