@@ -19,11 +19,12 @@ def test_admin_can_create_diagram_with_chart_config():
     token = login_response.json()["access_token"]
     auth_headers = {"Authorization": f"Bearer {token}"}
 
-    # Получаем текущего пользователя и его id
+    # Получаем информацию о текущем пользователе (admin) и его id
     me_response = client.get("/users/me", headers=auth_headers)
     assert me_response.status_code == 200
     user_id = me_response.json()["id"]
 
+    # Получаем список юнитов и ищем корневой уровень enterprise
     units_response = client.get("/units/", headers=auth_headers)
     assert units_response.status_code == 200
     units = units_response.json()
@@ -34,7 +35,7 @@ def test_admin_can_create_diagram_with_chart_config():
         enterprise is not None
     ), "Не найдено подразделение уровня enterprise для создания Цеха"
 
-    # Создаём новый юнит Цех-2
+    # Создаём новый юнит (Цех-2) под найденным enterprise
     create_unit_response = client.post(
         "/units/",
         headers=auth_headers,
@@ -47,7 +48,7 @@ def test_admin_can_create_diagram_with_chart_config():
     assert create_unit_response.status_code == 201
     unit_id = create_unit_response.json()["id"]
 
-    # Создаём диаграмму в блоке safety для Цех-2
+    # Создаём диаграмму в блоке safety для созданного юнита
     diagram_response = client.post(
         "/diagrams/",
         headers=auth_headers,
@@ -63,7 +64,7 @@ def test_admin_can_create_diagram_with_chart_config():
     assert diagram["unit_id"] == unit_id
     assert diagram["block"] == "safety"
 
-    # Создаём минимальную конфигурацию графика для диаграммы
+    # Создаём минимальную конфигурацию графика для созданной диаграммы
     chart_response = client.post(
         "/charts/",
         headers=auth_headers,
@@ -82,6 +83,7 @@ def test_admin_can_create_diagram_with_chart_config():
 
 
 def test_user_cannot_create_diagram_and_chart_without_permissions_then_can_after_grant():
+    # Авторизуемся как админ для подготовки окружения (создание юнита и диаграммы)
     login_response = client.post(
         "/auth/login",
         json={"login": "admin", "password": "admin"},
@@ -98,6 +100,7 @@ def test_user_cannot_create_diagram_and_chart_without_permissions_then_can_after
     )
     assert enterprise is not None
 
+    # Админ создаёт новый юнит (Цех-3)
     create_unit_response = client.post(
         "/units/",
         headers=admin_headers,
@@ -110,6 +113,7 @@ def test_user_cannot_create_diagram_and_chart_without_permissions_then_can_after
     assert create_unit_response.status_code == 201
     unit_id = create_unit_response.json()["id"]
 
+    # Админ создаёт диаграмму в блоке safety для Цех-3
     diagram_response = client.post(
         "/diagrams/",
         headers=admin_headers,
@@ -123,6 +127,7 @@ def test_user_cannot_create_diagram_and_chart_without_permissions_then_can_after
     assert diagram_response.status_code == 201
     diagram = diagram_response.json()
 
+    # Авторизуемся как обычный пользователь testuser
     login_user = client.post(
         "/auth/login",
         json={"login": "testuser", "password": "password"},
@@ -131,6 +136,7 @@ def test_user_cannot_create_diagram_and_chart_without_permissions_then_can_after
     user_token = login_user.json()["access_token"]
     user_headers = {"Authorization": f"Bearer {user_token}"}
 
+    # Попытка обычного пользователя создать диаграмму — ожидаем 403 (нет прав)
     user_diag_resp = client.post(
         "/diagrams/",
         headers=user_headers,
@@ -143,6 +149,7 @@ def test_user_cannot_create_diagram_and_chart_without_permissions_then_can_after
     )
     assert user_diag_resp.status_code == 403
 
+    # Попытка обычного пользователя создать конфиг графика для существующей диаграммы — ожидаем 403
     user_chart_resp = client.post(
         "/charts/",
         headers=user_headers,
@@ -156,6 +163,7 @@ def test_user_cannot_create_diagram_and_chart_without_permissions_then_can_after
     )
     assert user_chart_resp.status_code == 403
 
+    # Админ находит testuser в списке пользователей для выдачи прав
     me_admin = client.get("/users/me", headers=admin_headers)
     assert me_admin.status_code == 200
     users_list = client.get("/users/", headers=admin_headers)
@@ -163,6 +171,7 @@ def test_user_cannot_create_diagram_and_chart_without_permissions_then_can_after
     testuser = next((u for u in users_list.json() if u["login"] == "testuser"), None)
     assert testuser is not None
 
+    # Админ выдаёт testuser право manage в блоке safety для созданного юнита
     grant_response = client.post(
         f"/permissions/users/{testuser['id']}",
         headers=admin_headers,
@@ -174,6 +183,7 @@ def test_user_cannot_create_diagram_and_chart_without_permissions_then_can_after
     )
     assert grant_response.status_code == 200
 
+    # После выдачи прав — user может создать диаграмму
     user_diag_resp2 = client.post(
         "/diagrams/",
         headers=user_headers,
@@ -186,6 +196,7 @@ def test_user_cannot_create_diagram_and_chart_without_permissions_then_can_after
     )
     assert user_diag_resp2.status_code == 201
 
+    # И может создать конфиг графика для диаграммы
     user_chart_resp2 = client.post(
         "/charts/",
         headers=user_headers,
