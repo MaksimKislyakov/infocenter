@@ -2,10 +2,7 @@ from enum import Enum, StrEnum
 
 
 class Role(str, Enum):
-    INSPECTOR = "inspector"
-    MASTER = "master"
-    ENGINEER = "engineer"
-    MANAGEMENT = "management"
+    INSPECTOR = "user"
     ADMIN = "admin"
 
 
