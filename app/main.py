@@ -28,6 +28,7 @@ from app.db.session import Base, engine, SessionLocal
 from app.services.auth_service import get_password_hash
 from app.services.minio_service import MinioService
 from app.models.user_model import User
+from app.core.enums import Role
 
 settings = get_settings()
 
@@ -78,6 +79,28 @@ def create_default_admin():
         db.close()
 
 
+def create_default_user():
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.login == "user").first()
+        if not user:
+            user = User(
+                login="user",
+                full_name="Default User",
+                role=Role.USER.value,
+                email="user@example.com",
+                password_hash=get_password_hash("user"),
+                is_active=True,
+            )
+            db.add(user)
+            db.commit()
+            print("Default user created")
+        else:
+            print("Default user already exists")
+    finally:
+        db.close()
+
+
 def initialize_minio():
     try:
         minio_service = MinioService()
@@ -111,6 +134,7 @@ def create_default_units():
 if not settings.TESTING:
     create_default_units()
     create_default_admin()
+    create_default_user()
     initialize_minio()
 
 app = FastAPI(title="Check Backend")

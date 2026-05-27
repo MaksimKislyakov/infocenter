@@ -7,9 +7,10 @@ import app.models
 
 Base.metadata.create_all(bind=engine)
 
-from app.main import create_default_units, create_default_admin
+from app.main import create_default_units, create_default_admin, create_default_user
 create_default_units()
 create_default_admin()
+create_default_user()
 
 # Create a regular test user if not exists
 from app.db.session import SessionLocal
@@ -24,7 +25,7 @@ try:
 		user = User(
 			login="testuser",
 			full_name="Test User",
-			role=Role.INSPECTOR,
+			role=Role.USER,
 			email="testuser@example.com",
 			password_hash=get_password_hash("password"),
 			is_active=True,
