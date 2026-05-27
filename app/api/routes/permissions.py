@@ -65,17 +65,8 @@ def get_user_permissions(
     """Получить все права пользователя."""
     repo = PermissionRepository(db)
     perms = repo.get_user_permissions(user_id)
-    return [
-        PermissionResponseSchema(
-            id=p.id,
-            unit_id=p.unit_id,
-            unit_name=p.unit.name,
-            unit_level=p.unit.level_type,
-            block=p.block,
-            action=p.action,
-        )
-        for p in perms
-    ]
+    
+    return [PermissionResponseSchema.model_validate(p) for p in perms]
 
 
 @router.get("/units/tree")
