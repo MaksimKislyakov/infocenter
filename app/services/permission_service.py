@@ -2,8 +2,9 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 
 from app.repositories.permission_repository import PermissionRepository
-from app.repositories.unit_repository import UnitRepository  # создадим ниже
-from app.core.enums import Block, Action, OrgLevel
+from app.repositories.unit_repository import UnitRepository 
+from app.core.enums import Block, Action, OrgLevel, Role
+from app.models.user_model import User
 from app.schemas.permission_schema import (
     PermissionGrantSchema,
     UserPermissionsRequestSchema,
@@ -33,6 +34,11 @@ class PermissionService:
         Проверка доступа с учётом наследования по иерархии.
         Алгоритм: проверяем прямое право → поднимаемся к родителю → повторяем.
         """
+        # Admin bypass: админ имеет полный доступ без явных записей в user_unit_permissions
+        user_role = self.db.query(User.role).filter(User.id == user_id).scalar()
+        if user_role == Role.ADMIN:
+            return True
+
         # 1. Прямая проверка
         if self.perm_repo.check_direct_permission(user_id, unit_id, block, action):
             return True
