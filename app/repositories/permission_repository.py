@@ -55,6 +55,77 @@ class PermissionRepository:
         self.db.commit()
         return True
 
+    def grant_bulk(
+        self, user_id: UUID, permissions: list[PermissionGrantSchema]
+    ) -> list[UserUnitPermission]:
+        """Массовая выдача прав (с одним commit для всех)"""
+        granted = []
+        perms_to_add = []
+
+        # Проверяем существующие права и формируем список для добавления
+        for perm in permissions:
+            existing = (
+                self.db.query(UserUnitPermission)
+                .filter(
+                    UserUnitPermission.user_id == user_id,
+                    UserUnitPermission.unit_id == perm.unit_id,
+                    UserUnitPermission.block == perm.block,
+                    UserUnitPermission.action == perm.action,
+                )
+                .first()
+            )
+            if existing:
+                granted.append(existing)
+            else:
+                perms_to_add.append(
+                    UserUnitPermission(
+                        user_id=user_id,
+                        unit_id=perm.unit_id,
+                        block=perm.block,
+                        action=perm.action,
+                    )
+                )
+
+        # Добавляем все новые права и делаем один commit
+        if perms_to_add:
+            self.db.add_all(perms_to_add)
+            self.db.commit()
+            for perm in perms_to_add:
+                self.db.refresh(perm)
+            granted.extend(perms_to_add)
+
+        return granted
+
+    def revoke_bulk(
+        self, user_id: UUID, permissions: list[PermissionGrantSchema]
+    ) -> int:
+        """Массовый отзыв прав (с одним commit для всех)"""
+        to_delete = []
+
+        for perm in permissions:
+            target = (
+                self.db.query(UserUnitPermission)
+                .filter(
+                    UserUnitPermission.user_id == user_id,
+                    UserUnitPermission.unit_id == perm.unit_id,
+                    UserUnitPermission.block == perm.block,
+                    UserUnitPermission.action == perm.action,
+                )
+                .first()
+            )
+            if target:
+                to_delete.append(target)
+
+        # Удаляем все права и делаем один commit
+        count = 0
+        if to_delete:
+            for target in to_delete:
+                self.db.delete(target)
+            self.db.commit()
+            count = len(to_delete)
+
+        return count
+
     def get_user_permissions(self, user_id: UUID) -> list[UserUnitPermission]:
         """Получить все права пользователя с данными подразделений"""
         return (

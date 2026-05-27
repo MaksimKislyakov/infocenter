@@ -46,13 +46,13 @@ def grant_user_permissions(
 @router.delete("/users/{user_id}")
 def revoke_user_permissions(
     user_id: UUID,
-    permissions: list[PermissionGrantSchema],
+    data: UserPermissionsRequestSchema,
     db: Session = Depends(get_db),
     current_user=Depends(require_admin),
 ):
     """Массовый отзыв прав у пользователя."""
     service = PermissionService(db)
-    count = service.revoke_bulk(user_id, permissions)
+    count = service.revoke_bulk(user_id, data)
     return {"revoked": count}
 
 

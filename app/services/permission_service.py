@@ -19,13 +19,13 @@ class PermissionService:
 
     def grant_bulk(self, user_id: UUID, data: UserPermissionsRequestSchema) -> list:
         """Массовая выдача прав (при создании/редактировании пользователя)"""
-        return [self.perm_repo.grant(user_id, p) for p in data.permissions]
+        return self.perm_repo.grant_bulk(user_id, data.permissions)
 
     def revoke_bulk(
-        self, user_id: UUID, permissions: list[PermissionGrantSchema]
+        self, user_id: UUID, data: UserPermissionsRequestSchema
     ) -> int:
         """Массовый отзыв прав"""
-        return sum(1 for p in permissions if self.perm_repo.revoke(user_id, p))
+        return self.perm_repo.revoke_bulk(user_id, data.permissions)
 
     def has_access(
         self, user_id: UUID, unit_id: UUID, block: Block, action: Action
