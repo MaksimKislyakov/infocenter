@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from uuid import UUID
 
-from app.api.deps import get_db, require_admin
+from app.api.deps import get_db, require_admin, get_current_active_user
 from app.repositories.permission_repository import PermissionRepository
 from app.repositories.unit_repository import UnitRepository
 from app.services.permission_service import PermissionService
@@ -60,7 +60,7 @@ def revoke_user_permissions(
 def get_user_permissions(
     user_id: UUID,
     db: Session = Depends(get_db),
-    current_user=Depends(require_admin),
+    current_user=Depends(get_current_active_user),
 ):
     """Получить все права пользователя."""
     repo = PermissionRepository(db)

@@ -98,10 +98,7 @@ jobs:
             sleep 10
             
             echo "--- Checking container status ---"
-            docker compose ps
-            
-            echo "--- Cleanup old images ---"
-            docker image prune -f
+            docker compose ps            
             
             echo "--- Reloading nginx ---"
             docker compose exec -T nginx nginx -s reload || echo "Nginx reload completed"
