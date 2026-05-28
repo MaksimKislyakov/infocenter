@@ -32,7 +32,6 @@ from app.core.enums import Role
 
 settings = get_settings()
 
-# Defer heavy DB and external initialization when running tests.
 if not settings.TESTING:
     admin_engine = create_engine(
         f"postgresql+psycopg://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/postgres",
@@ -51,8 +50,8 @@ if not settings.TESTING:
             print(f"Database {settings.DB_NAME} already exists.")
     admin_engine.dispose()
 
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
+    # Base.metadata.drop_all(bind=engine)
+    # Base.metadata.create_all(bind=engine)
 
 
 def create_default_admin():
