@@ -8,8 +8,8 @@ from app.models.chart_config_model import ChartConfig
 __all__ = [
     "User",
     "Diagram",
-    "Unit",
-    "UserUnitPermission",
     "DiagramAudit",
+    "UserUnitPermission",
+    "Unit",
     "ChartConfig",
 ]

@@ -1,4 +1,5 @@
 import logging
+import httpx
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -8,11 +9,6 @@ from fastapi import status
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import IntegrityError
 from starlette.exceptions import HTTPException as StarletteHTTPException
-
-try:
-    import httpx
-except ImportError:
-    httpx = None
 
 from app.api.routes.auth import router as auth_router
 from app.api.routes.users import router as users_router

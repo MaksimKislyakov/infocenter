@@ -33,17 +33,17 @@ services:
     command: server /data --console-address ":9001"
 
   backend:
-    image: ${BACKEND_IMAGE:-infocenter/basckend:latest}
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
+    # image: ${BACKEND_IMAGE:-infocenter/basckend:latest}
+    build:
+      context: ../
+      dockerfile: Dockerfile
     depends_on:
       - db
       - minio
     env_file:
       - .env
-    # volumes:
-    #   - .:/app
+    volumes:
+      - ../:/app
     environment:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
@@ -67,12 +67,12 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/ssl:/etc/nginx/ssl:ro
     restart: unless-stopped
   
   # migration:
-  #   build: .
+  #   build: ../
   #   depends_on:
   #     db:
   #       condition: service_healthy
