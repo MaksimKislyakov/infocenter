@@ -58,24 +58,32 @@ class PermissionRepository:
     def grant_bulk(
         self, user_id: UUID, permissions: list[PermissionGrantSchema]
     ) -> list[UserUnitPermission]:
-        """Массовая выдача прав (с одним commit для всех)"""
-        granted = []
-        perms_to_add = []
+        """Синхронизирует права пользователя с переданным набором.
 
-        # Проверяем существующие права и формируем список для добавления
+        Удаляет лишние права, добавляет новые и оставляет существующие.
+        """
+        requested_keys = {
+            (perm.unit_id, perm.block, perm.action) for perm in permissions
+        }
+
+        existing_perms = (
+            self.db.query(UserUnitPermission)
+            .filter(UserUnitPermission.user_id == user_id)
+            .all()
+        )
+        existing_map = {
+            (perm.unit_id, perm.block, perm.action): perm
+            for perm in existing_perms
+        }
+
+        granted: list[UserUnitPermission] = []
+        perms_to_add: list[UserUnitPermission] = []
+
+        # Оставляем существующие права и создаём недостающие
         for perm in permissions:
-            existing = (
-                self.db.query(UserUnitPermission)
-                .filter(
-                    UserUnitPermission.user_id == user_id,
-                    UserUnitPermission.unit_id == perm.unit_id,
-                    UserUnitPermission.block == perm.block,
-                    UserUnitPermission.action == perm.action,
-                )
-                .first()
-            )
-            if existing:
-                granted.append(existing)
+            key = (perm.unit_id, perm.block, perm.action)
+            if key in existing_map:
+                granted.append(existing_map[key])
             else:
                 perms_to_add.append(
                     UserUnitPermission(
@@ -86,9 +94,16 @@ class PermissionRepository:
                     )
                 )
 
-        # Добавляем все новые права и делаем один commit
-        if perms_to_add:
-            self.db.add_all(perms_to_add)
+        # Удаляем права, которые больше не присутствуют в запросе
+        to_delete = [
+            perm for key, perm in existing_map.items() if key not in requested_keys
+        ]
+
+        if to_delete or perms_to_add:
+            for perm in to_delete:
+                self.db.delete(perm)
+            if perms_to_add:
+                self.db.add_all(perms_to_add)
             self.db.commit()
             for perm in perms_to_add:
                 self.db.refresh(perm)

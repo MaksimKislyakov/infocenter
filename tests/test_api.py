@@ -213,7 +213,78 @@ def test_user_cannot_create_diagram_and_chart_without_permissions_then_can_after
     assert user_chart_resp2.status_code == 201
 
 
-def test_get_user_notification_history():
+def test_admin_can_replace_user_permissions():
+    login_response = client.post(
+        "/auth/login",
+        json={"login": "admin", "password": "admin"},
+    )
+    assert login_response.status_code == 200
+    admin_headers = {"Authorization": f"Bearer {login_response.json()['access_token']}"}
+
+    create_user_response = client.post(
+        "/users/",
+        headers=admin_headers,
+        json={
+            "login": "permission_test_user",
+            "password": "password",
+            "full_name": "Permission Test",
+            "role": "user",
+        },
+    )
+    assert create_user_response.status_code == 200
+    user_id = create_user_response.json()["id"]
+
+    units_response = client.get("/units/", headers=admin_headers)
+    assert units_response.status_code == 200
+    units = units_response.json()
+    enterprise = next((unit for unit in units if unit["level_type"] == "enterprise"), None)
+    assert enterprise is not None
+
+    create_unit_response = client.post(
+        "/units/",
+        headers=admin_headers,
+        params={
+            "name": "Цех-ReplacePerm",
+            "level_type": "shop",
+            "parent_id": enterprise["id"],
+        },
+    )
+    assert create_unit_response.status_code == 201
+    unit_id = create_unit_response.json()["id"]
+
+    # Сначала даём два права
+    grant_response = client.post(
+        f"/permissions/users/{user_id}",
+        headers=admin_headers,
+        json={
+            "permissions": [
+                {"unit_id": unit_id, "block": "safety", "action": "view"},
+                {"unit_id": unit_id, "block": "quality", "action": "manage"},
+            ]
+        },
+    )
+    assert grant_response.status_code == 200
+    assert len(grant_response.json()) == 2
+
+    # Перезаписываем только одно право — в результате второе должно исчезнуть
+    replace_response = client.post(
+        f"/permissions/users/{user_id}",
+        headers=admin_headers,
+        json={
+            "permissions": [
+                {"unit_id": unit_id, "block": "safety", "action": "view"}
+            ]
+        },
+    )
+    assert replace_response.status_code == 200
+    assert len(replace_response.json()) == 1
+
+    current_perms = client.get(f"/permissions/users/{user_id}", headers=admin_headers)
+    assert current_perms.status_code == 200
+    perms = current_perms.json()
+    assert len(perms) == 1
+    assert perms[0]["block"] == "safety"
+    assert perms[0]["action"] == "view"
     # Авторизуемся как admin для подготовки уведомления
     login_response = client.post(
         "/auth/login",
