@@ -10,6 +10,7 @@ from app.schemas.diagram_schema import (
     DiagramAuditResponse,
 )
 from app.services.diagram_service import DiagramService
+from app.services.notification_service import notification_manager
 from app.services.permission_service import PermissionService
 from app.core.enums import Action, Block
 
@@ -79,7 +80,7 @@ def get_diagram(
 
 
 @router.patch("/{diagram_id}", response_model=DatasetResponse)
-def update_diagram(
+async def update_diagram(
     diagram_id: str,
     data: DatasetUpdate,
     db: Session = Depends(get_db),
@@ -99,6 +100,14 @@ def update_diagram(
     diagram = service.update_diagram(diagram_id, data, current_user.id)
     if not diagram:
         raise HTTPException(status_code=404, detail="Diagram not found")
+
+    if str(diagram.created_by) != str(current_user.id):
+        await notification_manager.notify_diagram_updated(
+            recipient_id=str(diagram.created_by),
+            actor_id=str(current_user.id),
+            diagram_id=str(diagram.id),
+            message=f"Диаграмма {diagram.id} была обновлена",
+        )
     return diagram
 
 

@@ -45,7 +45,11 @@ class DiagramRepository:
         return diagram
 
     def get_by_id(self, diagram_id: str) -> Diagram | None:
-        return self.db.query(Diagram).filter(Diagram.id == diagram_id).first()
+        try:
+            diagram_uuid = UUID(diagram_id) if isinstance(diagram_id, str) else diagram_id
+        except (ValueError, TypeError):
+            return None
+        return self.db.query(Diagram).filter(Diagram.id == diagram_uuid).first()
 
     def get_all(
         self, skip: int = 0, limit: int = 100, block=None, unit_id=None

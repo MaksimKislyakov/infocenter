@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, WebSocket, WebSocketException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError
 from sqlalchemy.orm import Session
@@ -52,6 +52,38 @@ def get_current_active_user(current_user=Depends(get_current_user)):
             status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
         )
     return current_user
+
+
+def get_current_user_ws(
+    websocket: WebSocket, db: Session = Depends(get_db)
+):
+    auth_header = websocket.headers.get("authorization")
+    if not auth_header or not auth_header.lower().startswith("bearer "):
+        raise WebSocketException(
+            code=status.WS_1008_POLICY_VIOLATION,
+            reason="Could not validate credentials",
+        )
+
+    token = auth_header.split(" ", 1)[1]
+    try:
+        payload = decode_access_token(token)
+        login: str | None = payload.get("sub")
+        if login is None:
+            raise ValueError("Invalid token payload")
+        token_data = TokenData(login=login)
+    except (JWTError, ValueError):
+        raise WebSocketException(
+            code=status.WS_1008_POLICY_VIOLATION,
+            reason="Could not validate credentials",
+        )
+
+    user = UserRepository(db).get_by_login(token_data.login)
+    if user is None:
+        raise WebSocketException(
+            code=status.WS_1008_POLICY_VIOLATION,
+            reason="Could not validate credentials",
+        )
+    return user
 
 
 def require_admin(current_user=Depends(get_current_active_user)):

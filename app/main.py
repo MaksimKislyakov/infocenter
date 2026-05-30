@@ -13,6 +13,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.api.routes.auth import router as auth_router
 from app.api.routes.users import router as users_router
 from app.api.routes.diagrams import router as diagrams_router
+from app.api.routes.notifications import router as notifications_router
 from app.api.routes.permissions import router as permissions_router
 from app.api.routes.units import router as units_router
 from app.api.routes.charts import router as charts_router
@@ -214,6 +215,7 @@ app.include_router(charts_router)
 app.include_router(datasets_router)
 app.include_router(permissions_router)
 app.include_router(units_router)
+app.include_router(notifications_router)
 
 
 @app.get("/")
