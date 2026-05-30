@@ -57,3 +57,11 @@ class NotificationRepository:
         for notification in notifications:
             self.db.refresh(notification)
         return notifications
+
+    def get_user_notifications(self, recipient_id: str) -> list[Notification]:
+        return (
+            self.db.query(Notification)
+            .filter(Notification.recipient_id == UUID(recipient_id))
+            .order_by(Notification.created_at.desc())
+            .all()
+        )

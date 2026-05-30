@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_active_user, get_current_user_ws, get_db
 from app.repositories.notification_repository import NotificationRepository
+from app.schemas.notification_schema import NotificationResponse
 from app.services.notification_service import notification_manager
 
 router = APIRouter()
@@ -48,4 +49,31 @@ def get_pending_notifications(
             "delivered_at": notification.delivered_at,
         }
         for notification in pending_notifications
+    ]
+
+
+@router.get("/notifications", response_model=list[NotificationResponse])
+def get_all_notifications(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_active_user),
+):
+    """
+    Получить всю историю уведомлений для текущего пользователя.
+    """
+    notifications_repo = NotificationRepository(db)
+    notifications = notifications_repo.get_user_notifications(str(current_user.id))
+
+    return [
+        {
+            "id": str(notification.id),
+            "type": notification.type,
+            "recipient_id": str(notification.recipient_id),
+            "actor_id": str(notification.actor_id),
+            "diagram_id": str(notification.diagram_id),
+            "message": notification.message,
+            "data": notification.data,
+            "timestamp": notification.created_at,
+            "delivered_at": notification.delivered_at,
+        }
+        for notification in notifications
     ]

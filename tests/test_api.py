@@ -4,7 +4,9 @@ os.environ["TESTING"] = "true"
 
 from fastapi.testclient import TestClient
 
+from app.db.session import SessionLocal
 from app.main import app
+from app.repositories.notification_repository import NotificationRepository
 
 client = TestClient(app)
 
@@ -209,3 +211,84 @@ def test_user_cannot_create_diagram_and_chart_without_permissions_then_can_after
         },
     )
     assert user_chart_resp2.status_code == 201
+
+
+def test_get_user_notification_history():
+    # Авторизуемся как admin для подготовки уведомления
+    login_response = client.post(
+        "/auth/login",
+        json={"login": "admin", "password": "admin"},
+    )
+    assert login_response.status_code == 200
+    admin_token = login_response.json()["access_token"]
+    admin_headers = {"Authorization": f"Bearer {admin_token}"}
+
+    me_response = client.get("/users/me", headers=admin_headers)
+    assert me_response.status_code == 200
+    admin_id = me_response.json()["id"]
+
+    # Создаём диаграмму, чтобы был валидный diagram_id для уведомления
+    units_response = client.get("/units/", headers=admin_headers)
+    assert units_response.status_code == 200
+    units = units_response.json()
+    enterprise = next((unit for unit in units if unit["level_type"] == "enterprise"), None)
+    assert enterprise is not None
+
+    create_unit_response = client.post(
+        "/units/",
+        headers=admin_headers,
+        params={
+            "name": "Цех-Notification-History",
+            "level_type": "shop",
+            "parent_id": enterprise["id"],
+        },
+    )
+    assert create_unit_response.status_code == 201
+    unit_id = create_unit_response.json()["id"]
+
+    diagram_response = client.post(
+        "/diagrams/",
+        headers=admin_headers,
+        json={
+            "block": "safety",
+            "unit_id": unit_id,
+            "columns": [{"name": "metric", "type": "string"}],
+            "rows": [{"metric": "ok"}],
+        },
+    )
+    assert diagram_response.status_code == 201
+    diagram_id = diagram_response.json()["id"]
+
+    # Авторизуемся как обычный пользователь testuser
+    login_user = client.post(
+        "/auth/login",
+        json={"login": "testuser", "password": "password"},
+    )
+    assert login_user.status_code == 200
+    user_token = login_user.json()["access_token"]
+    user_headers = {"Authorization": f"Bearer {user_token}"}
+
+    user_me_resp = client.get("/users/me", headers=user_headers)
+    assert user_me_resp.status_code == 200
+    user_id = user_me_resp.json()["id"]
+
+    # Создаём уведомление вручную в базе для текущего пользователя
+    db = SessionLocal()
+    try:
+        repo = NotificationRepository(db)
+        repo.create_notification(
+            recipient_id=user_id,
+            actor_id=admin_id,
+            diagram_id=diagram_id,
+            message="История уведомлений тест",
+            data={"diagram_id": diagram_id},
+        )
+    finally:
+        db.close()
+
+    history_response = client.get("/notifications", headers=user_headers)
+    assert history_response.status_code == 200
+    notifications = history_response.json()
+    assert any(
+        item["message"] == "История уведомлений тест" for item in notifications
+    )
