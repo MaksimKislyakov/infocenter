@@ -10,7 +10,7 @@ from app.schemas.diagram_schema import (
     DiagramAuditResponse,
 )
 from app.services.diagram_service import DiagramService
-from app.services.notification_service import notification_manager
+from app.services.notifications.notification_service import notification_manager
 from app.services.permission_service import PermissionService
 from app.core.enums import Action, Block
 

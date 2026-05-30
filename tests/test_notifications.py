@@ -6,7 +6,7 @@ os.environ["TESTING"] = "true"
 
 from app.db.session import SessionLocal
 from app.repositories.notification_repository import NotificationRepository
-from app.services.notification_service import NotificationManager
+from app.services.notifications.notification_service import NotificationManager
 from app.schemas.notification_schema import NotificationPayload
 
 

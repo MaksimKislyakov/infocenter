@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_active_user, get_current_user_ws, get_db
 from app.repositories.notification_repository import NotificationRepository
 from app.schemas.notification_schema import NotificationResponse
-from app.services.notification_service import notification_manager
+from app.services.notifications.notification_service import notification_manager
 
 router = APIRouter()
 
