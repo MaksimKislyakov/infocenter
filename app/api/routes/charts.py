@@ -43,7 +43,7 @@ def create_chart(
     return service.create_chart(data)
 
 
-@router.put("/{chart_id}", response_model=ChartResponse)
+@router.patch("/{chart_id}", response_model=ChartResponse)
 def update_chart(
     chart_id: int,
     data: ChartUpdate,

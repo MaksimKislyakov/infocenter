@@ -83,14 +83,16 @@ class DiagramRepository:
             "rows": diagram.rows,
         }
 
-        if data.block:
+        if data.block is not None:
             diagram.block = data.block
-        if data.unit_id:
+        if data.unit_id is not None:
             diagram.unit_id = data.unit_id
         if data.order is not None:
             diagram.order = data.order
-        diagram.columns = [c.model_dump() for c in data.columns]
-        diagram.rows = data.rows
+        if data.columns is not None:
+            diagram.columns = [c.model_dump() for c in data.columns]
+        if data.rows is not None:
+            diagram.rows = data.rows
 
         new_values = {
             "block": str(diagram.block.value),

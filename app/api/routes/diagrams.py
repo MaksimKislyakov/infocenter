@@ -78,7 +78,7 @@ def get_diagram(
     return diagram
 
 
-@router.put("/{diagram_id}", response_model=DatasetResponse)
+@router.patch("/{diagram_id}", response_model=DatasetResponse)
 def update_diagram(
     diagram_id: str,
     data: DatasetUpdate,

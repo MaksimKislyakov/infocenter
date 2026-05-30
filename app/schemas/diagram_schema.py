@@ -28,8 +28,12 @@ class DatasetCreate(DatasetBase):
     pass
 
 
-class DatasetUpdate(DatasetBase):
+class DatasetUpdate(BaseModel):
+    block: Block | None = None
+    unit_id: UUID | None = None
     order: int | None = None
+    columns: list[ColumnSchema] | None = None
+    rows: list[dict] | None = None
 
 
 class DatasetResponse(DatasetBase):
