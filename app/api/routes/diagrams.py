@@ -107,6 +107,7 @@ async def update_diagram(
             actor_id=str(current_user.id),
             diagram_id=str(diagram.id),
             message=f"Диаграмма {diagram.id} была обновлена",
+            db=db,
         )
     return diagram
 

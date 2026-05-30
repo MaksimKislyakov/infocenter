@@ -1,7 +1,6 @@
 from datetime import datetime
 from enum import Enum
 from pydantic import BaseModel, Field
-from uuid import UUID
 
 
 class NotificationType(str, Enum):
@@ -16,3 +15,10 @@ class NotificationPayload(BaseModel):
     message: str = Field(..., description="Человеко-читаемое сообщение")
     data: dict | None = Field(None, description="Дополнительные данные уведомления")
     timestamp: datetime = Field(default_factory=datetime.utcnow, description="Время создания уведомления")
+
+
+class NotificationResponse(NotificationPayload):
+    id: str = Field(..., description="ID уведомления")
+    delivered_at: datetime | None = Field(
+        None, description="Время, когда уведомление было доставлено через WebSocket"
+    )

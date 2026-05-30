@@ -4,6 +4,7 @@ from app.models.unit_model import Unit
 from app.models.permission_model import UserUnitPermission
 from app.models.diagram_audit_model import DiagramAudit
 from app.models.chart_config_model import ChartConfig
+from app.models.notification_model import Notification
 
 __all__ = [
     "User",
@@ -12,4 +13,5 @@ __all__ = [
     "UserUnitPermission",
     "Unit",
     "ChartConfig",
+    "Notification",
 ]

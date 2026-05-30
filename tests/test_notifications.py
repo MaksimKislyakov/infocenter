@@ -4,6 +4,8 @@ from uuid import uuid4
 
 os.environ["TESTING"] = "true"
 
+from app.db.session import SessionLocal
+from app.repositories.notification_repository import NotificationRepository
 from app.services.notification_service import NotificationManager
 from app.schemas.notification_schema import NotificationPayload
 
@@ -141,3 +143,77 @@ async def test_diagram_update_notification():
     assert message["actor_id"] == admin_id
     assert message["diagram_id"] == diagram_id
     assert message["message"] == "Test diagram update"
+
+
+def test_notification_repository_persistence():
+    db = SessionLocal()
+    try:
+        recipient_id = str(uuid4())
+        actor_id = str(uuid4())
+        diagram_id = str(uuid4())
+
+        repo = NotificationRepository(db)
+        notification = repo.create_notification(
+            recipient_id=recipient_id,
+            actor_id=actor_id,
+            diagram_id=diagram_id,
+            message="Диаграмма была обновлена",
+            data={"diagram_id": diagram_id},
+        )
+
+        pending = repo.get_pending_notifications(recipient_id)
+        assert len(pending) == 1
+        assert str(pending[0].id) == str(notification.id)
+        assert pending[0].delivered_at is None
+
+        delivered = repo.mark_as_delivered(notification)
+        assert delivered.delivered_at is not None
+
+        pending_after_delivery = repo.get_pending_notifications(recipient_id)
+        assert len(pending_after_delivery) == 0
+
+    finally:
+        db.close()
+
+
+@pytest.mark.asyncio
+async def test_send_pending_notifications_on_connect():
+    db = SessionLocal()
+    try:
+        recipient_id = str(uuid4())
+        actor_id = str(uuid4())
+        diagram_id = str(uuid4())
+
+        repo = NotificationRepository(db)
+        notification = repo.create_notification(
+            recipient_id=recipient_id,
+            actor_id=actor_id,
+            diagram_id=diagram_id,
+            message="Offline notification",
+            data={"diagram_id": diagram_id},
+        )
+
+        class MockWebSocket:
+            def __init__(self):
+                self.messages = []
+
+            async def send_json(self, data):
+                self.messages.append(data)
+
+            async def accept(self):
+                pass
+
+        ws = MockWebSocket()
+        manager = NotificationManager()
+        manager.active_connections[recipient_id] = [ws]
+
+        delivered = await manager.send_pending_notifications(recipient_id, db)
+
+        assert delivered == 1
+        assert len(ws.messages) == 1
+        assert ws.messages[0]["message"] == "Offline notification"
+
+        pending_after = repo.get_pending_notifications(recipient_id)
+        assert pending_after == []
+    finally:
+        db.close()
