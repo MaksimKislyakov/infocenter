@@ -61,8 +61,12 @@ def list_diagrams(
     current_user=Depends(get_current_active_user),
 ):
     """Получить список диаграмм с пагинацией."""
+    perm_service = PermissionService(db)
+    allowed_units = perm_service.get_user_accessible_units(
+        current_user.id, block, Action.VIEW
+    )
     service = DiagramService(db)
-    return service.list_diagrams(skip, limit, block, unit_id)
+    return service.list_diagrams(skip, limit, block, unit_id, allowed_units)
 
 
 @router.get("/{diagram_id}", response_model=DatasetResponse)
@@ -76,6 +80,11 @@ def get_diagram(
     diagram = service.get_diagram(diagram_id)
     if not diagram:
         raise HTTPException(status_code=404, detail="Diagram not found")
+    perm_service = PermissionService(db)
+    if not perm_service.has_access(
+        current_user.id, diagram.unit_id, diagram.block, Action.VIEW
+    ):
+        raise HTTPException(status_code=403, detail="Access denied")
     return diagram
 
 
@@ -97,6 +106,14 @@ async def update_diagram(
       - updated_by: ID пользователя, сделавшего изменение
     """
     service = DiagramService(db)
+    diagram = service.get_diagram(diagram_id)
+    if not diagram:
+        raise HTTPException(status_code=404, detail="Diagram not found")
+    perm_service = PermissionService(db)
+    if not perm_service.has_access(
+        current_user.id, diagram.unit_id, diagram.block, Action.MANAGE
+    ):
+        raise HTTPException(status_code=403, detail="Access denied")
     diagram = service.update_diagram(diagram_id, data, current_user.id)
     if not diagram:
         raise HTTPException(status_code=404, detail="Diagram not found")
@@ -124,6 +141,14 @@ def delete_diagram(
     При удалении создается запись в diagram_audit с operation=2 (delete).
     """
     service = DiagramService(db)
+    diagram = service.get_diagram(diagram_id)
+    if not diagram:
+        raise HTTPException(status_code=404, detail="Diagram not found")
+    perm_service = PermissionService(db)
+    if not perm_service.has_access(
+        current_user.id, diagram.unit_id, diagram.block, Action.MANAGE
+    ):
+        raise HTTPException(status_code=403, detail="Access denied")
     if not service.delete_diagram(diagram_id, current_user.id):
         raise HTTPException(status_code=404, detail="Diagram not found")
 

@@ -29,8 +29,9 @@ class DiagramService:
 
     def list_diagrams(
         self, skip: int = 0, limit: int = 100, block=None, unit_id=None
+        , allowed_unit_ids: list[UUID] | None = None
     ) -> list[DatasetResponse]:
-        diagrams = self.repository.get_all(skip, limit, block, unit_id)
+        diagrams = self.repository.get_all(skip, limit, block, unit_id, allowed_unit_ids)
         return [DatasetResponse.model_validate(d) for d in diagrams]
 
     def _sanitize_value(self, value):

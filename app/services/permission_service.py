@@ -3,6 +3,7 @@ from uuid import UUID
 
 from app.repositories.permission_repository import PermissionRepository
 from app.repositories.unit_repository import UnitRepository 
+from app.models.unit_model import Unit
 from app.core.enums import Block, Action, OrgLevel, Role
 from app.models.user_model import User
 from app.schemas.permission_schema import (
@@ -58,11 +59,17 @@ class PermissionService:
         self, user_id: UUID, block: Block, action: Action
     ) -> list[UUID]:
         """Получить все unit_id, к которым у пользователя есть доступ (для фильтрации списков)"""
+        user_role = self.db.query(User.role).filter(User.id == user_id).scalar()
+        if user_role == Role.ADMIN:
+            return [unit.id for unit in self.db.query(Unit.id).all()]
+
         perms = self.perm_repo.get_user_permissions(user_id)
         accessible = set()
 
         for perm in perms:
-            if perm.block in [block, Block.ALL] and perm.action == action:
+            if perm.action != action:
+                continue
+            if block is None or perm.block in [block, Block.ALL]:
                 # Добавляем сам юнит + все дочерние (рекурсивно)
                 accessible.add(perm.unit_id)
                 accessible.update(self.unit_repo.get_all_descendant_ids(perm.unit_id))

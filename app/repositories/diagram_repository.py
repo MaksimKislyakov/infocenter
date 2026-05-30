@@ -53,12 +53,15 @@ class DiagramRepository:
 
     def get_all(
         self, skip: int = 0, limit: int = 100, block=None, unit_id=None
+        , allowed_unit_ids: list[UUID] | None = None
     ) -> list[Diagram]:
         query = self.db.query(Diagram)
         if block is not None:
             query = query.filter(Diagram.block == block)
         if unit_id is not None:
             query = query.filter(Diagram.unit_id == unit_id)
+        if allowed_unit_ids is not None:
+            query = query.filter(Diagram.unit_id.in_(allowed_unit_ids))
         return (
             query.order_by(Diagram.order.asc(), Diagram.created_at.asc())
             .offset(skip)
