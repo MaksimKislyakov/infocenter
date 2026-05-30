@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    NOTIFICATION_HISTORY_LIMIT: int = 30
 
     DB_USER: str
     DB_PASSWORD: str

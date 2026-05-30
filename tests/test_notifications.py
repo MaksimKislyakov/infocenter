@@ -176,6 +176,32 @@ def test_notification_repository_persistence():
         db.close()
 
 
+def test_notification_history_limit_keeps_last_30():
+    db = SessionLocal()
+    try:
+        recipient_id = str(uuid4())
+        actor_id = str(uuid4())
+        diagram_id = str(uuid4())
+        repo = NotificationRepository(db)
+
+        for index in range(35):
+            repo.create_notification(
+                recipient_id=recipient_id,
+                actor_id=actor_id,
+                diagram_id=diagram_id,
+                message=f"Notification {index}",
+                data={"diagram_id": diagram_id},
+            )
+
+        all_notifications = repo.get_user_notifications(recipient_id)
+        assert len(all_notifications) == 30
+        assert all_notifications[0].message == "Notification 34"
+        assert all_notifications[-1].message == "Notification 5"
+        assert not any(n.message == "Notification 0" for n in all_notifications)
+    finally:
+        db.close()
+
+
 @pytest.mark.asyncio
 async def test_send_pending_notifications_on_connect():
     db = SessionLocal()

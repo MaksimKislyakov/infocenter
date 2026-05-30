@@ -2,6 +2,7 @@ from datetime import datetime
 from uuid import UUID
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.models.notification_model import Notification
 from app.schemas.notification_schema import NotificationType
 
@@ -30,7 +31,39 @@ class NotificationRepository:
         self.db.add(notification)
         self.db.commit()
         self.db.refresh(notification)
+
+        self._cleanup_old_notifications(recipient_id)
         return notification
+
+    def _cleanup_old_notifications(self, recipient_id: str) -> None:
+        limit = settings.NOTIFICATION_HISTORY_LIMIT
+        if limit <= 0:
+            return
+
+        total = (
+            self.db.query(Notification)
+            .filter(Notification.recipient_id == UUID(recipient_id))
+            .count()
+        )
+        if total <= limit:
+            return
+
+        to_delete = total - limit
+        oldest_ids = [
+            row[0]
+            for row in (
+                self.db.query(Notification.id)
+                .filter(Notification.recipient_id == UUID(recipient_id))
+                .order_by(Notification.created_at.asc())
+                .limit(to_delete)
+                .all()
+            )
+        ]
+        if not oldest_ids:
+            return
+
+        self.db.query(Notification).filter(Notification.id.in_(oldest_ids)).delete(synchronize_session=False)
+        self.db.commit()
 
     def get_pending_notifications(self, recipient_id: str) -> list[Notification]:
         return (
