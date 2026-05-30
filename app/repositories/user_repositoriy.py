@@ -63,6 +63,13 @@ class UserRepository:
         self.db.refresh(user)
         return user
 
+    def update_password(self, user: User, password_hash: str) -> User:
+        """Обновить только пароль пользователя"""
+        user.password_hash = password_hash
+        self.db.commit()
+        self.db.refresh(user)
+        return user
+
     def delete(self, user: User) -> None:
         self.db.delete(user)
         self.db.commit()

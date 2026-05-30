@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     MINIO_BUCKET_NAME: str
     MINIO_SECURE: bool
     MINIO_EXTERNAL_ENDPOINT: str
+    
+    SMPT_MAIL: str = ""
+    SMTP_MAIL_PASSWORD: str = ""
+    
     TESTING: bool = False
 
     model_config = SettingsConfigDict(

@@ -19,7 +19,10 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password: str
+    password: Optional[str] = Field(
+        None, 
+        description="Пароль (опционально, если не указан, будет сгенерирован автоматически)"
+    )
 
 
 class UserUpdate(BaseModel):
@@ -28,8 +31,13 @@ class UserUpdate(BaseModel):
     role: Optional[Role] = None
     job_title: Optional[str] = None
     email: Optional[EmailStr] = None
-    password: Optional[str] = None
     is_active: Optional[bool] = None
+
+
+class ChangePasswordSchema(BaseModel):
+    """Схема для смены пароля пользователем"""
+    current_password: str = Field(..., description="Текущий пароль")
+    new_password: str = Field(..., description="Новый пароль")
 
 
 class UserRead(UserBase):
