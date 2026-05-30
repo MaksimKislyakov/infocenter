@@ -24,4 +24,3 @@ class Block(StrEnum):
 class Action(StrEnum):
     VIEW = "view"
     MANAGE = "manage"
-    MANAGE_PERMISSIONS = "manage_permissions"

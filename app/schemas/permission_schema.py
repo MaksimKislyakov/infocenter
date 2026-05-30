@@ -13,7 +13,7 @@ class PermissionGrantSchema(BaseModel):
     )
     action: Action = Field(
         ...,
-        description="Действие: view (Просмотр), manage (Управление), manage_permissions (Управление правами)",
+        description="Действие: view (Просмотр), manage (Управление)",
     )
 
 
@@ -42,7 +42,7 @@ class PermissionResponseSchema(BaseModel):
     )
     action: Action = Field(
         ...,
-        description="Действие: view (Просмотр), manage (Управление), manage_permissions (Управление правами)",
+        description="Действие: view (Просмотр), manage (Управление)",
     )
 
     # class Config:
