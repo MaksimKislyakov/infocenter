@@ -67,8 +67,12 @@ class PermissionService:
         accessible = set()
 
         for perm in perms:
-            if perm.action != action:
-                continue
+            if action == Action.VIEW:
+                if perm.action not in [Action.VIEW, Action.MANAGE]:
+                    continue
+            else:
+                if perm.action != action:
+                    continue
             if block is None or perm.block in [block, Block.ALL]:
                 # Добавляем сам юнит + все дочерние (рекурсивно)
                 accessible.add(perm.unit_id)

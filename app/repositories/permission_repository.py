@@ -154,13 +154,17 @@ class PermissionRepository:
         self, user_id: UUID, unit_id: UUID, block: Block, action: Action
     ) -> bool:
         """Проверка прямого права (без наследования)"""
+        action_filter = [action]
+        if action == Action.VIEW:
+            action_filter = [Action.VIEW, Action.MANAGE]
+
         return (
             self.db.query(UserUnitPermission.id)
             .filter(
                 UserUnitPermission.user_id == user_id,
                 UserUnitPermission.unit_id == unit_id,
                 UserUnitPermission.block.in_([block, Block.ALL]),
-                UserUnitPermission.action == action,
+                UserUnitPermission.action.in_(action_filter),
             )
             .first()
             is not None
