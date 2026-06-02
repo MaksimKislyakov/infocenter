@@ -93,7 +93,7 @@ jobs:
             
             echo "--- Starting containers ---"
             docker compose up -d --remove-orphans
-            
+
             echo "Waiting for containers to stabilize..."
             sleep 10
             
