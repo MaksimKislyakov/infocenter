@@ -57,14 +57,23 @@ def get_current_active_user(current_user=Depends(get_current_user)):
 def get_current_user_ws(
     websocket: WebSocket, db: Session = Depends(get_db)
 ):
+    token = None
+    
+    # Try to get token from header first (backward compatibility)
     auth_header = websocket.headers.get("authorization")
-    if not auth_header or not auth_header.lower().startswith("bearer "):
+    if auth_header and auth_header.lower().startswith("bearer "):
+        token = auth_header.split(" ", 1)[1]
+    
+    # If not found in header, try query parameters
+    if not token:
+        token = websocket.query_params.get("token")
+    
+    if not token:
         raise WebSocketException(
             code=status.WS_1008_POLICY_VIOLATION,
             reason="Could not validate credentials",
         )
 
-    token = auth_header.split(" ", 1)[1]
     try:
         payload = decode_access_token(token)
         login: str | None = payload.get("sub")
