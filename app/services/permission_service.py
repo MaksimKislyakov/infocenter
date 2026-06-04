@@ -19,7 +19,7 @@ class PermissionService:
         self.unit_repo = UnitRepository(db)
 
     def grant_bulk(self, user_id: UUID, data: UserPermissionsRequestSchema) -> list:
-        """Синхронизирует права пользователя с переданным набором при редактировании."""
+        """Добавляет новые права пользователю, сохраняя уже существующие."""
         return self.perm_repo.grant_bulk(user_id, data.permissions)
 
     def revoke_bulk(
