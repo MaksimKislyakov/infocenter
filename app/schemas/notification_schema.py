@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pydantic import BaseModel, Field
 
@@ -14,7 +14,7 @@ class NotificationPayload(BaseModel):
     diagram_id: str = Field(..., description="ID диаграммы, которая была изменена")
     message: str = Field(..., description="Человеко-читаемое сообщение")
     data: dict | None = Field(None, description="Дополнительные данные уведомления")
-    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Время создания уведомления")
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="Время создания уведомления")
 
 
 class NotificationResponse(NotificationPayload):

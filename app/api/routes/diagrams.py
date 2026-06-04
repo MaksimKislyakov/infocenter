@@ -13,6 +13,7 @@ from app.services.diagram_service import DiagramService
 from app.services.notifications.notification_service import notification_manager
 from app.services.permission_service import PermissionService
 from app.core.enums import Action, Block
+from app.repositories.chart_repository import ChartRepository
 
 router = APIRouter(prefix="/diagrams", tags=["diagrams"])
 
@@ -119,11 +120,26 @@ async def update_diagram(
         raise HTTPException(status_code=404, detail="Diagram not found")
 
     if str(diagram.created_by) != str(current_user.id):
+        BLOCK_DISPLAY = {
+            Block.SAFETY: "Безопасность",
+            Block.QUALITY: "Качество",
+            Block.PRODUCTION: "Производство",
+            Block.ECONOMY: "Затраты",
+            Block.CULTURE: "Культура",
+            Block.ALL: "Все",
+        }
+
+        block_name = BLOCK_DISPLAY.get(diagram.block, str(diagram.block))
+        # Try to use human-readable chart title if available
+        chart_repo = ChartRepository(db)
+        charts = chart_repo.get_all(diagram_id=diagram.id)
+        diagram_name = charts[0].title if charts else str(getattr(diagram, "id", diagram))
+
         await notification_manager.notify_diagram_updated(
             recipient_id=str(diagram.created_by),
             actor_id=str(current_user.id),
             diagram_id=str(diagram.id),
-            message=f"Диаграмма {diagram.id} была обновлена",
+            message=f'Диаграмма "{diagram_name}" из блока "{block_name}" была обновлена',
             db=db,
         )
     return diagram
