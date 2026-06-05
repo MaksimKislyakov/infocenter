@@ -13,11 +13,11 @@ class OrgLevel(StrEnum):
 
 
 class Block(StrEnum):
-    SAFETY = "safety"
-    QUALITY = "quality"
-    PRODUCTION = "production"
-    ECONOMY = "economy"
-    CULTURE = "culture"
+    SAFETY = "safety" #Безопасность
+    QUALITY = "quality" #Качество
+    PRODUCTION = "production" #Производство / Исполнение заказов
+    ECONOMY = "economy" #Экономика и затраты
+    CULTURE = "culture" #Корпоративная культура
     ALL = "all"
 
 
