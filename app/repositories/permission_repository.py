@@ -58,14 +58,7 @@ class PermissionRepository:
     def grant_bulk(
         self, user_id: UUID, permissions: list[PermissionGrantSchema]
     ) -> list[UserUnitPermission]:
-        """Синхронизирует права пользователя с переданным набором.
-
-        Удаляет лишние права, добавляет новые и оставляет существующие.
-        """
-        requested_keys = {
-            (perm.unit_id, perm.block, perm.action) for perm in permissions
-        }
-
+        """Добавляет новые права пользователю, не удаляя существующие."""
         existing_perms = (
             self.db.query(UserUnitPermission)
             .filter(UserUnitPermission.user_id == user_id)
@@ -76,40 +69,27 @@ class PermissionRepository:
             for perm in existing_perms
         }
 
-        granted: list[UserUnitPermission] = []
         perms_to_add: list[UserUnitPermission] = []
-
-        # Оставляем существующие права и создаём недостающие
         for perm in permissions:
             key = (perm.unit_id, perm.block, perm.action)
-            if key in existing_map:
-                granted.append(existing_map[key])
-            else:
-                perms_to_add.append(
-                    UserUnitPermission(
-                        user_id=user_id,
-                        unit_id=perm.unit_id,
-                        block=perm.block,
-                        action=perm.action,
-                    )
+            if key not in existing_map:
+                new_perm = UserUnitPermission(
+                    user_id=user_id,
+                    unit_id=perm.unit_id,
+                    block=perm.block,
+                    action=perm.action,
                 )
+                perms_to_add.append(new_perm)
+                existing_map[key] = new_perm
 
-        # Удаляем права, которые больше не присутствуют в запросе
-        to_delete = [
-            perm for key, perm in existing_map.items() if key not in requested_keys
-        ]
-
-        if to_delete or perms_to_add:
-            for perm in to_delete:
-                self.db.delete(perm)
-            if perms_to_add:
-                self.db.add_all(perms_to_add)
+        if perms_to_add:
+            self.db.add_all(perms_to_add)
             self.db.commit()
             for perm in perms_to_add:
                 self.db.refresh(perm)
-            granted.extend(perms_to_add)
+            existing_perms.extend(perms_to_add)
 
-        return granted
+        return existing_perms
 
     def revoke_bulk(
         self, user_id: UUID, permissions: list[PermissionGrantSchema]

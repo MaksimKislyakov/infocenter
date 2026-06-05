@@ -213,7 +213,7 @@ def test_user_cannot_create_diagram_and_chart_without_permissions_then_can_after
     assert user_chart_resp2.status_code == 201
 
 
-def test_admin_can_replace_user_permissions():
+def test_admin_can_add_user_permissions():
     login_response = client.post(
         "/auth/login",
         json={"login": "admin", "password": "admin"},
@@ -244,7 +244,7 @@ def test_admin_can_replace_user_permissions():
         "/units/",
         headers=admin_headers,
         params={
-            "name": "Цех-ReplacePerm",
+            "name": "Цех-AddPerm",
             "level_type": "shop",
             "parent_id": enterprise["id"],
         },
@@ -266,25 +266,26 @@ def test_admin_can_replace_user_permissions():
     assert grant_response.status_code == 200
     assert len(grant_response.json()) == 2
 
-    # Перезаписываем только одно право — в результате второе должно исчезнуть
-    replace_response = client.post(
+    # Добавляем третье право, не удаляя предыдущие
+    add_response = client.post(
         f"/permissions/users/{user_id}",
         headers=admin_headers,
         json={
             "permissions": [
-                {"unit_id": unit_id, "block": "safety", "action": "view"}
+                {"unit_id": unit_id, "block": "culture", "action": "manage"}
             ]
         },
     )
-    assert replace_response.status_code == 200
-    assert len(replace_response.json()) == 1
+    assert add_response.status_code == 200
+    assert len(add_response.json()) == 3
 
     current_perms = client.get(f"/permissions/users/{user_id}", headers=admin_headers)
     assert current_perms.status_code == 200
     perms = current_perms.json()
-    assert len(perms) == 1
-    assert perms[0]["block"] == "safety"
-    assert perms[0]["action"] == "view"
+    assert len(perms) == 3
+    assert any(p["block"] == "safety" and p["action"] == "view" for p in perms)
+    assert any(p["block"] == "quality" and p["action"] == "manage" for p in perms)
+    assert any(p["block"] == "culture" and p["action"] == "manage" for p in perms)
     # Авторизуемся как admin для подготовки уведомления
     login_response = client.post(
         "/auth/login",
