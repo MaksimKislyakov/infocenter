@@ -33,13 +33,15 @@ services:
     command: server /data --console-address ":9001"
 
   backend:
-    image: ${BACKEND_IMAGE:-infocenter/basckend:latest}
+    image: ${BACKEND_IMAGE:-infocenter/backend:latest}
     # build:
     #   context: .
     #   dockerfile: Dockerfile
     depends_on:
-      - db
-      - minio
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_started
     env_file:
       - .env
     # volumes:
