@@ -18,6 +18,7 @@ from app.api.routes.permissions import router as permissions_router
 from app.api.routes.units import router as units_router
 from app.api.routes.charts import router as charts_router
 from app.api.routes.datasets import router as datasets_router
+from app.api.routes.files import router as files_router
 
 from app.core.config import get_settings
 from app.core.exceptions import AppError
@@ -216,6 +217,7 @@ app.include_router(datasets_router)
 app.include_router(permissions_router)
 app.include_router(units_router)
 app.include_router(notifications_router)
+app.include_router(files_router)
 
 
 @app.get("/")

@@ -63,3 +63,23 @@ class MinioService:
             self.client.remove_object(self.bucket_name, object_name)
         except S3Error as e:
             raise Exception(f"MinIO delete error: {e}")
+
+    def download_file(self, object_name: str) -> bytes:
+        """Download file from MinIO and return bytes."""
+        try:
+            response = self.client.get_object(self.bucket_name, object_name)
+            return response.read()
+        except S3Error as e:
+            raise Exception(f"MinIO download error: {e}")
+
+    def get_file_info(self, object_name: str):
+        """Get file metadata from MinIO."""
+        try:
+            stat = self.client.stat_object(self.bucket_name, object_name)
+            return {
+                "size": stat.size,
+                "last_modified": stat.last_modified,
+                "content_type": stat.content_type,
+            }
+        except S3Error as e:
+            raise Exception(f"MinIO stat error: {e}")
